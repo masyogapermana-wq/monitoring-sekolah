@@ -88,17 +88,22 @@
         }
 
         // KONFIGURASI SCANNER
+        // KONFIGURASI SCANNER (VERSI KAMERA BELAKANG)
         let config = {
             fps: 30,
             qrbox: {
                 width: 250,
                 height: 250
             },
-            rememberLastUsedCamera: true,
-            // INI RAHASIANYA BRO: Paksa kamera CUMA nyari QR Code, abaikan barcode lain!
-            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+            rememberLastUsedCamera: true, // Ingat pilihan terakhir
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+            // 🔥 INI KUNCINYA BRO: Paksa pilih kamera yang menghadap ke luar
+            videoConstraints: {
+                facingMode: "environment"
+            }
         };
 
+        // Render scanner seperti biasa
         let html5QrcodeScanner = new Html5QrcodeScanner("reader", config, false);
         html5QrcodeScanner.render(onScanSuccess);
     </script>
