@@ -6,7 +6,7 @@
 
         <div class="row mb-4">
             <!-- Kartu Siswa Hadir -->
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-3">
                 <div class="card bg-success text-white shadow">
                     <div class="card-body">
                         <h5 class="card-title">Hadir Hari Ini</h5>
@@ -16,7 +16,7 @@
             </div>
 
             <!-- Kartu Siswa Terlambat -->
-            <div class="col-md-4">
+            <div class="col-12 col-md-4 mb-3">
                 <div class="card bg-warning text-dark shadow">
                     <div class="card-body">
                         <h5 class="card-title">Terlambat Hari Ini</h5>
@@ -26,7 +26,7 @@
             </div>
 
             <!-- Kartu Pintasan Cetak Laporan -->
-            <div class="col-md-4 mb-3">
+            <div class="col-12 col-md-4 mb-3">
     <div class="card bg-primary text-white shadow h-100 border-0">
         <div class="card-body d-flex flex-column justify-content-center align-items-center">
             <h5 class="card-title mb-3 fw-bold">Laporan Evaluasi</h5>
