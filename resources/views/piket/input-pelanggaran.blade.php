@@ -11,6 +11,17 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+            <strong>❌ Gagal Menyimpan Data!</strong>
+            <ul class="mb-0 mt-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
     <div class="row">
         <!-- Kolom Kiri: Form Input Pelanggaran -->
@@ -19,6 +30,16 @@
                 <div class="card-body">
                     <form action="{{ route('piket.store-pelanggaran') }}" method="POST">
                         @csrf
+
+
+                        <input type="hidden" name="siswa_id" id="siswa_id">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tanggal Kejadian</label>
+                            <input type="date" name="tanggal_kejadian" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        </div>
+
+                        
 
                         <!-- Input NIS (Bisa Scan / Ketik Manual) -->
                         <div class="mb-3">
@@ -38,7 +59,7 @@
                                 <option value="">-- Pilih Pelanggaran --</option>
                                 @foreach($jenisPelanggaran as $item)
                                     <option value="{{ $item->id }}">
-                                        {{ $item->nama_pelanggaran }} 
+                                        {{ $item->nama_pelanggaran }}
                                     </option>
                                 @endforeach
                             </select>
@@ -109,9 +130,15 @@
                 if(response.status == 'success') {
                     $('#nama_siswa_info').html(`✅ Siswa Ditemukan: ${response.data.nama_siswa} (Kelas ${response.data.kelas})`);
                     $('#nis').addClass('is-valid').removeClass('is-invalid');
+
+                    // 🔥 TAMBAHAN BARU: Masukkan ID Siswa ke dalam input tersembunyi
+                    $('#siswa_id').val(response.data.id);
                 } else {
                     $('#nama_siswa_info').html(`<span class="text-danger">❌ Siswa tidak ditemukan!</span>`);
                     $('#nis').addClass('is-invalid').removeClass('is-valid');
+
+                    // 🔥 TAMBAHAN BARU: Kosongkan ID jika siswa tidak ada
+                    $('#siswa_id').val('');
                 }
             }
         });

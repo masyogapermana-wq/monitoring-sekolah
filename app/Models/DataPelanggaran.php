@@ -10,14 +10,7 @@ class DataPelanggaran extends Model
     use HasFactory;
 
     // TAMBAHKAN KODE INI:
-    protected $fillable = [
-        'siswa_id',
-        'jenis_pelanggaran_id',
-        'user_id',
-        'catatan',
-        'tanggal_kejadian',
-        'sanksi'
-    ];
+    protected $fillable = ['siswa_id', 'jenis_pelanggaran_id', 'sanksi', 'tanggal_kejadian', 'user_id'];
     public function siswa()
     {
         return $this->belongsTo(Siswa::class, 'siswa_id');

@@ -106,22 +106,56 @@ class PiketController extends Controller
     }
 
     // 6. Menyimpan Data Pelanggaran Siswa
+    // 6. Menyimpan Data Pelanggaran Siswa (VERSI ANTI GAGAL)
     public function storePelanggaran(Request $request)
     {
+        // 1. Validasi kita ubah, sekarang yang wajib itu 'nis', bukan 'siswa_id'
         $request->validate([
-            'siswa_id' => 'required',
+            'nis' => 'required',
             'jenis_pelanggaran_id' => 'required',
             'sanksi' => 'required',
             'tanggal_kejadian' => 'required',
         ]);
 
+        // 2. Kita cari data siswa berdasarkan NIS yang diketik di form
+        $siswa = Siswa::where('nis', $request->nis)->first();
+
+        // 3. Kalau ternyata NIS ngasal / nggak ada di database, tolak!
+        if (!$siswa) {
+            return back()->withErrors(['Siswa dengan NIS tersebut tidak ditemukan di database!'])->withInput();
+        }
+
+        // 4. Kalau ketemu, langsung simpan datanya pakai ID si Siswa
         DataPelanggaran::create([
-            'siswa_id' => $request->siswa_id,
+            'siswa_id' => $siswa->id,
             'jenis_pelanggaran_id' => $request->jenis_pelanggaran_id,
             'sanksi' => $request->sanksi,
             'tanggal_kejadian' => $request->tanggal_kejadian,
+            'user_id' => auth()->id(),
         ]);
 
         return back()->with('success', 'Data pelanggaran siswa berhasil dicatat!');
+    }
+    public function cekSiswa(Request $request)
+    {
+        // Cari siswa berdasarkan NIS yang diketik
+        $siswa = Siswa::where('nis', $request->nis)->first();
+
+        // Kalau siswanya nggak ada di database
+        if (!$siswa) {
+            return response()->json([
+                'status' => 'error'
+            ]);
+        }
+
+        // Kalau ada, kirim data nama dan ID-nya ke Javascript
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $siswa->id,
+                'nama_siswa' => $siswa->nama_siswa,
+                'kelas' => $siswa->kelas
+            ]
+        ]);
     }
 }

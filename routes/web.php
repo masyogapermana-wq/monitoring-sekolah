@@ -49,7 +49,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/piket/scan', [App\Http\Controllers\PiketController::class, 'scan'])->name('piket.scan');
         Route::post('/piket/cek-siswa', [App\Http\Controllers\PiketController::class, 'cekSiswa'])->name('piket.cek-siswa');
         Route::get('/piket/manual', [App\Http\Controllers\PiketController::class, 'manual'])->name('piket.manual');
-
+        Route::post('/piket/cek-siswa', [App\Http\Controllers\PiketController::class, 'cekSiswa'])->name('piket.cek-siswa');
         // TAMBAHKAN INI:
         Route::post('/piket/simpan-presensi', [App\Http\Controllers\PiketController::class, 'simpanPresensi'])->name('piket.simpan');
 
