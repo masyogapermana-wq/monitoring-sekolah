@@ -30,7 +30,7 @@
     <div class="card card-login bg-white">
         <div class="text-center">
             <div class="icon-logo">
-    <img src="{{ secure_asset('img/logo_kikil.png') }}" alt="Logo SMK" style="width: 80px; height: auto;">
+    <img src="https://github.com/masyogapermana-wq/monitoring-sekolah/blob/main/public/img/logo_kikil.png?raw=true" alt="Logo SMK" style="width: 80px; height: auto;">
 </div>
 
             <h5 class="fw-bold mb-1">SMK PEMBANGUNAN</h5>
