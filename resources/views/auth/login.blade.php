@@ -32,7 +32,7 @@
     <div class="card card-login bg-white">
         <div class="text-center">
             <div class="icon-logo">
-    <img src="{{ asset('img/kikil.jpg') }}" alt="Logo SMK Pembangunan" style="width: 80px; height: auto;">
+    <img src="{{ secure_asset('img/kikil.jpg') }}" alt="Logo SMK" style="width: 80px; height: auto;">
 </div>
 
             <h5 class="fw-bold mb-1">SMK PEMBANGUNAN</h5>
