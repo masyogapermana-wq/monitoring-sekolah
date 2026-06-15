@@ -4,11 +4,11 @@
 <div class="container-fluid">
     <h3 class="fw-bold mb-4">🎓 Data Siswa</h3>
 
-    <div class="mb-4">
+    <div class="d-flex flex-column flex-md-row gap-2 mb-4">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahSiswaModal">
             + Tambah Siswa Baru
         </button>
-        <a href="{{ route('siswa.cetak-semua') }}" target="_blank" class="btn btn-dark ms-2">
+        <a href="{{ route('siswa.cetak-semua') }}" target="_blank" class="btn btn-dark">
             🖨️ Cetak Semua QR Code
         </a>
     </div>
