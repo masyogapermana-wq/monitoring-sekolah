@@ -52,7 +52,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/piket/cek-siswa', [App\Http\Controllers\PiketController::class, 'cekSiswa'])->name('piket.cek-siswa');
         // TAMBAHKAN INI:
         Route::post('/piket/simpan-presensi', [App\Http\Controllers\PiketController::class, 'simpanPresensi'])->name('piket.simpan');
-
+        // Rute untuk proses update status absen
+        Route::put('/piket/presensi/update/{id}', [\App\Http\Controllers\PiketController::class, 'updatePresensi'])->name('piket.update-presensi');
         Route::get('/piket/input-pelanggaran', [App\Http\Controllers\PiketController::class, 'inputPelanggaran'])->name('piket.input');
         Route::post('/piket/input-pelanggaran', [App\Http\Controllers\PiketController::class, 'storePelanggaran'])->name('piket.store-pelanggaran');
     });

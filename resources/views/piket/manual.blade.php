@@ -13,13 +13,24 @@
                         <span id="nis-hasil" class="mb-0"></span>
                     </div>
 
-                    <p class="text-muted mb-3">Masukkan NIS siswa yang lupa membawa kartu QR.</p>
+                    <p class="text-muted mb-3">Masukkan NIS siswa dan pilih keterangan kehadirannya.</p>
 
                     <div class="input-group input-group-lg shadow-sm mb-3">
                         <span class="input-group-text bg-light fw-bold">NIS</span>
                         <input type="number" id="manual-nis" class="form-control" placeholder="Ketik NIS di sini..." autocomplete="off" autofocus>
-                        <button class="btn btn-success px-4 fw-bold" type="button" id="btn-manual">Catat Hadir</button>
                     </div>
+
+                    <div class="mb-4">
+                        <select id="manual-status" class="form-select form-select-lg shadow-sm fw-bold">
+                            <option value="Hadir">✅ Hadir (Lupa Bawa Kartu)</option>
+                            <option value="Sakit">🤒 Sakit</option>
+                            <option value="Izin">💌 Izin</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-success btn-lg w-100 fw-bold shadow-sm" type="button" id="btn-manual">
+                        💾 Simpan Presensi
+                    </button>
 
                 </div>
             </div>
@@ -33,6 +44,8 @@
 
     $('#btn-manual').click(function() {
         let nisManual = $('#manual-nis').val();
+        let statusManual = $('#manual-status').val(); // 🔥 INI NAMKEP PILIHAN SAKIT/IZIN
+
         if(nisManual.trim() === '') { alert('Tolong masukkan NIS siswa!'); return; }
         if (isProcessing) return;
         isProcessing = true;
@@ -45,20 +58,30 @@
         $('#nis-hasil').html('⏳ <strong>Memproses...</strong>');
 
         $.ajax({
-            url: "{{ route('piket.simpan') }}", // Jalur simpan ke database
+            url: "{{ route('piket.simpan') }}",
             type: "POST",
-            data: { _token: "{{ csrf_token() }}", nis: nisManual },
+            // 🔥 Status ikut dikirim ke server barengan sama NIS
+            data: { _token: "{{ csrf_token() }}", nis: nisManual, status: statusManual },
             success: function(response) {
                 $('#result-alert').removeClass('alert-warning');
                 if(response.status == 'success') {
                     $('#result-alert').addClass('alert-success');
-                    $('#nis-hasil').html(`✅ <strong>BERHASIL!</strong><br>${response.nama} - <span class="badge bg-success">${response.status_kehadiran}</span>`);
+
+                    // Ganti warna badge otomatis tergantung statusnya
+                    let badgeColor = 'bg-success';
+                    if(response.status_kehadiran === 'Terlambat') badgeColor = 'bg-warning text-dark';
+                    if(response.status_kehadiran === 'Sakit') badgeColor = 'bg-info text-dark';
+                    if(response.status_kehadiran === 'Izin') badgeColor = 'bg-secondary';
+
+                    $('#nis-hasil').html(`✅ <strong>BERHASIL!</strong><br>${response.nama} - <span class="badge ${badgeColor}">${response.status_kehadiran}</span>`);
                 } else {
                     $('#result-alert').addClass('alert-danger');
                     $('#nis-hasil').html(`❌ <strong>DITOLAK!</strong><br>${response.message}`);
                 }
 
-                $('#manual-nis').val('').focus(); // Fokuskan lagi ke inputan biar bisa langsung ngetik siswa berikutnya
+                $('#manual-nis').val('').focus();
+                // Kembalikan dropdown ke Hadir setelah sukses
+                $('#manual-status').val('Hadir');
 
                 setTimeout(() => {
                     $('#result-alert').addClass('d-none');

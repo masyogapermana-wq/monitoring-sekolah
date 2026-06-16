@@ -12,9 +12,20 @@ use Illuminate\Http\Request;
 class PiketController extends Controller
 {
     // 1. Halaman Depan / Dashboard Guru Piket
+    // Halaman Depan / Dashboard Guru Piket
     public function index()
     {
-        return view('piket.dashboard');
+        // 1. Ambil tanggal hari ini
+        $hariIni = \Carbon\Carbon::today()->toDateString();
+
+        // 2. Ambil data presensi dari database khusus untuk hari ini
+        $presensis = \App\Models\Presensi::with('siswa')
+                        ->whereDate('tanggal', $hariIni)
+                        ->orderBy('jam_masuk', 'desc')
+                        ->get();
+
+        // 3. Kirim variabel $presensis ke halaman dashboard
+        return view('piket.dashboard', compact('presensis'));
     }
 
     // 2. Halaman Scanner Kamera QR
@@ -62,17 +73,22 @@ class PiketController extends Controller
                 ]);
             }
 
-            // Tentukan Status Kehadiran (Batas telat contoh jam 07:15)
-            $statusKehadiran = 'Hadir';
-            if ($jamSekarang > '07:15:00') {
-                $statusKehadiran = 'Terlambat';
+            // 🔥 LOGIKA BARU: Tentukan Status Kehadiran (Hadir, Sakit, Izin)
+            // Kalau request status kosong (misal dari Scanner), otomatis anggap 'Hadir'
+            $statusKehadiran = $request->status ?? 'Hadir';
+
+            // Cek keterlambatan HANYA JIKA statusnya 'Hadir'
+            if ($statusKehadiran == 'Hadir') {
+                if ($jamSekarang > '07:15:00') {
+                    $statusKehadiran = 'Terlambat';
+                }
             }
 
             // Simpan data ke tabel presensi
             Presensi::create([
                 'siswa_id' => $siswa->id,
                 'tanggal' => $hariIni,
-                'jam_masuk' => $jamSekarang,   // <--- NAH INI DIA LENGKAPNYA!
+                'jam_masuk' => $jamSekarang,
                 'status' => $statusKehadiran,
             ]);
 
@@ -92,20 +108,19 @@ class PiketController extends Controller
         }
     }
 
-    // 5. Halaman Form Input Pelanggaran Manual (Nama fungsi disesuaikan dengan web.php lu)
+    // 5. Halaman Form Input Pelanggaran Manual
     public function inputPelanggaran()
     {
         // Ambil data siswa
         $siswas = Siswa::orderBy('nama_siswa', 'asc')->get();
 
-        // SAKTI: Variabel dihilangkan huruf 's' di belakang agar COCOK dengan blade lu ($jenisPelanggaran)
+        // SAKTI: Variabel dihilangkan huruf 's' di belakang agar COCOK dengan blade lu
         $jenisPelanggaran = JenisPelanggaran::orderBy('nama_pelanggaran', 'asc')->get();
 
-        // Panggil nama file view lu yang asli: input-pelanggaran
+        // Panggil nama file view lu yang asli
         return view('piket.input-pelanggaran', compact('siswas', 'jenisPelanggaran'));
     }
 
-    // 6. Menyimpan Data Pelanggaran Siswa
     // 6. Menyimpan Data Pelanggaran Siswa (VERSI ANTI GAGAL)
     public function storePelanggaran(Request $request)
     {
@@ -121,7 +136,7 @@ class PiketController extends Controller
         $siswa = Siswa::where('nis', $request->nis)->first();
 
         // 3. Kalau ternyata NIS ngasal / nggak ada di database, tolak!
-        if (!$siswa) {
+        if (! $siswa) {
             return back()->withErrors(['Siswa dengan NIS tersebut tidak ditemukan di database!'])->withInput();
         }
 
@@ -136,15 +151,17 @@ class PiketController extends Controller
 
         return back()->with('success', 'Data pelanggaran siswa berhasil dicatat!');
     }
+
+    // 7. Melayani pencarian NIS otomatis di form pelanggaran
     public function cekSiswa(Request $request)
     {
         // Cari siswa berdasarkan NIS yang diketik
         $siswa = Siswa::where('nis', $request->nis)->first();
 
         // Kalau siswanya nggak ada di database
-        if (!$siswa) {
+        if (! $siswa) {
             return response()->json([
-                'status' => 'error'
+                'status' => 'error',
             ]);
         }
 
@@ -154,8 +171,26 @@ class PiketController extends Controller
             'data' => [
                 'id' => $siswa->id,
                 'nama_siswa' => $siswa->nama_siswa,
-                'kelas' => $siswa->kelas
-            ]
+                'kelas' => $siswa->kelas,
+            ],
         ]);
+    }
+
+    // 8. Proses Update Status Kehadiran (Untuk Kasus Pulang Awal/Sakit)
+    public function updatePresensi(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required',
+        ]);
+
+        // Cari data presensi berdasarkan ID yang diklik
+        $presensi = Presensi::findOrFail($id);
+
+        // Update statusnya saja (Jam masuknya tidak diubah agar riwayat kedatangan tetap ada)
+        $presensi->update([
+            'status' => $request->status,
+        ]);
+
+        return back()->with('success', 'Status kehadiran berhasil diperbarui!');
     }
 }

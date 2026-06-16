@@ -43,16 +43,20 @@ $siswaBermasalah = \App\Models\DataPelanggaran::with(['siswa', 'jenisPelanggaran
     // =================================================================
     public function laporanPresensi(\Illuminate\Http\Request $request)
     {
-        $tanggal = $request->input('tanggal');
-        $query = \App\Models\Presensi::with('siswa')->orderBy('tanggal', 'desc');
+        // 1. Ambil tanggal dari filter, kalau kosong otomatis pakai tanggal hari ini
+        $tanggal = $request->input('tanggal') ?? \Carbon\Carbon::today()->toDateString();
 
-        // Kalau ada filter tanggal
-        if ($tanggal) {
-            $query->whereDate('tanggal', $tanggal);
-        }
+        // 2. Panggil SEMUA data siswa dari database, urutkan biar rapi per kelas & abjad nama
+        $siswas = \App\Models\Siswa::orderBy('kelas', 'asc')->orderBy('nama_siswa', 'asc')->get();
 
-        $presensis = $query->get();
-        return view('bk.laporan-presensi', compact('presensis', 'tanggal'));
+        // 3. Panggil data absen khusus di tanggal tersebut saja
+        // Pakai keyBy('siswa_id') biar datanya gampang dicocokin sama ID Siswa di Blade nanti
+        $presensis = \App\Models\Presensi::whereDate('tanggal', $tanggal)
+                        ->get()
+                        ->keyBy('siswa_id');
+
+        // 4. Lempar data $siswas (untuk semua nama) dan $presensis (untuk statusnya) ke Blade
+        return view('bk.laporan-presensi', compact('siswas', 'presensis', 'tanggal'));
     }
 
     // =================================================================
