@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <h3 class="fw-bold mb-4">⚠️ Kelola Jenis Pelanggaran & Poin</h3>
+    <h3 class="fw-bold mb-4">⚠️ Kelola Jenis Pelanggaran</h3>
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -40,7 +40,7 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $item->nama_pelanggaran }}</td>
-                        
+
                         <td>
                             <form action="{{ route('pelanggaran.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus aturan ini?')">
                                 @csrf
