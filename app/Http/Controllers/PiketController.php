@@ -79,7 +79,8 @@ class PiketController extends Controller
 
             // Cek keterlambatan HANYA JIKA statusnya 'Hadir'
             if ($statusKehadiran == 'Hadir') {
-                if ($jamSekarang > '07:15:00') {
+                // Diubah jadi jam 9 pagi untuk keperluan Uji Coba
+                if ($jamSekarang > '09:00:00') {
                     $statusKehadiran = 'Terlambat';
                 }
             }
