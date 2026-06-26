@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Presensi;
 use App\Models\Siswa;
+use Carbon\Carbon;
 
 class BkController extends Controller
 {
@@ -41,22 +42,37 @@ $siswaBermasalah = \App\Models\DataPelanggaran::with(['siswa', 'jenisPelanggaran
     // =================================================================
     // 1. FUNGSI LAPORAN PRESENSI (Ditambah fitur Filter Tanggal)
     // =================================================================
-    public function laporanPresensi(\Illuminate\Http\Request $request)
+    public function laporanPresensi(Request $request)
     {
-        // 1. Ambil tanggal dari filter, kalau kosong otomatis pakai tanggal hari ini
-        $tanggal = $request->input('tanggal') ?? \Carbon\Carbon::today()->toDateString();
+        // 1. Ambil parameter filter dari request (jika tidak ada, default ke harian hari ini)
+        $filter = $request->get('filter', 'harian');
+        $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
+        $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
 
-        // 2. Panggil SEMUA data siswa dari database, urutkan biar rapi per kelas & abjad nama
-        $siswas = \App\Models\Siswa::orderBy('kelas', 'asc')->orderBy('nama_siswa', 'asc')->get();
+        // 2. Mulai query dasar untuk mengambil semua siswa beserta relasi presensinya
+        $querySiswa = Siswa::orderBy('nama_siswa', 'asc');
 
-        // 3. Panggil data absen khusus di tanggal tersebut saja
-        // Pakai keyBy('siswa_id') biar datanya gampang dicocokin sama ID Siswa di Blade nanti
-        $presensis = \App\Models\Presensi::whereDate('tanggal', $tanggal)
-                        ->get()
-                        ->keyBy('siswa_id');
+        // 3. Tentukan rentang tanggal berdasarkan tipe filter menggunakan Carbon
+        if ($filter == 'harian') {
+            $startDate = Carbon::parse($tanggalInput)->startOfDay();
+            $endDate = Carbon::parse($tanggalInput)->endOfDay();
+        } elseif ($filter == 'mingguan') {
+            // Mengambil awal dan akhir minggu dari tanggal yang dipilih siswa
+            $startDate = Carbon::parse($tanggalInput)->startOfWeek();
+            $endDate = Carbon::parse($tanggalInput)->endOfWeek();
+        } elseif ($filter == 'bulanan') {
+            // Mengambil awal dan akhir bulan dari input bulan (Format: Y-m)
+            $startDate = Carbon::parse($bulanInput . '-01')->startOfMonth();
+            $endDate = Carbon::parse($bulanInput . '-01')->endOfMonth();
+        }
 
-        // 4. Lempar data $siswas (untuk semua nama) dan $presensis (untuk statusnya) ke Blade
-        return view('bk.laporan-presensi', compact('siswas', 'presensis', 'tanggal'));
+        // 4. Ambil data siswa beserta riwayat presensinya yang sudah disaring berdasarkan rentang tanggal
+        $siswas = $querySiswa->with(['presensi' => function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()]);
+        }])->get();
+
+        // 5. Kirim semua variabel ke tampilan blade
+        return view('bk.laporan-presensi', compact('siswas', 'filter', 'tanggalInput', 'bulanInput', 'startDate', 'endDate'));
     }
 
     // =================================================================

@@ -18,4 +18,8 @@ class Siswa extends Model
         'foto',
         'total_poin'
     ];
+    public function presensi()
+    {
+        return $this->hasMany(Presensi::class);
+    }
 }
