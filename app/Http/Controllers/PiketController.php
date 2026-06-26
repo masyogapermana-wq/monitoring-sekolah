@@ -20,9 +20,9 @@ class PiketController extends Controller
 
         // 2. Ambil data presensi dari database khusus untuk hari ini
         $presensis = \App\Models\Presensi::with('siswa')
-                        ->whereDate('tanggal', $hariIni)
-                        ->orderBy('jam_masuk', 'desc')
-                        ->get();
+            ->whereDate('tanggal', $hariIni)
+            ->orderBy('jam_masuk', 'desc')
+            ->get();
 
         // 3. Kirim variabel $presensis ke halaman dashboard
         return view('piket.dashboard', compact('presensis'));
@@ -79,8 +79,12 @@ class PiketController extends Controller
 
             // Cek keterlambatan HANYA JIKA statusnya 'Hadir'
             if ($statusKehadiran == 'Hadir') {
-                // Diubah jadi jam 9 pagi untuk keperluan Uji Coba
-                if ($jamSekarang > '09:00:00') {
+
+                // Batas waktu keterlambatan dikembalikan ke jam 07:30 pagi
+                // Format waktu menggunakan standar 24 jam (Jam:Menit:Detik)
+                if ($jamSekarang > '07:30:00') {
+
+                    // Jika jam kedatangan lebih dari 07:30:00, ubah status menjadi Terlambat
                     $statusKehadiran = 'Terlambat';
                 }
             }
