@@ -32,6 +32,12 @@
                     Jenis Pelanggaran
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin.pengaturan') }}"
+                    class="nav-link {{ request()->is('admin/pengaturan') ? 'active' : 'link-dark' }}">
+                    ⚙️ Pengaturan Jam Masuk
+                </a>
+            </li>
         @endif
 
         @if (Auth::user()->role == 'piket')
