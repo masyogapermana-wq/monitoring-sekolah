@@ -26,7 +26,10 @@ Route::middleware(['auth'])->group(function () {
 
         // (Rute cetak per siswa yang kemarin biarkan saja di bawahnya)
         Route::get('/admin/siswa/{id}/cetak-qr', [App\Http\Controllers\SiswaController::class, 'cetakQr'])->name('siswa.cetak-qr');
-
+        // Rute untuk melihat halaman pengaturan
+        Route::get('/admin/pengaturan', [\App\Http\Controllers\AdminController::class, 'pengaturan'])->name('admin.pengaturan');
+        // Rute untuk memproses perubahan jam
+        Route::post('/admin/pengaturan/update', [\App\Http\Controllers\AdminController::class, 'updatePengaturan'])->name('admin.pengaturan.update');
         // Route untuk Cetak QR Code Siswa
         Route::get('/admin/siswa/{id}/cetak-qr', [App\Http\Controllers\SiswaController::class, 'cetakQr'])->name('siswa.cetak-qr');
 

@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\DataPelanggaran;
 use App\Models\JenisPelanggaran;
+use App\Models\Pengaturan;
 use App\Models\Presensi;
-use App\Models\Siswa;
+use App\Models\Siswa; // <-- Udah gua tambahin panggil model Pengaturan di sini
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PiketController extends Controller
 {
     // 1. Halaman Depan / Dashboard Guru Piket
-    // Halaman Depan / Dashboard Guru Piket
     public function index()
     {
         // 1. Ambil tanggal hari ini
@@ -34,7 +34,7 @@ class PiketController extends Controller
         return view('piket.scan');
     }
 
-    // 3. Halaman Presensi Manual (YANG BIKIN ERROR TADI SEKARANG UDAH ADA)
+    // 3. Halaman Presensi Manual
     public function manual()
     {
         return view('piket.manual');
@@ -73,18 +73,19 @@ class PiketController extends Controller
                 ]);
             }
 
-            // 🔥 LOGIKA BARU: Tentukan Status Kehadiran (Hadir, Sakit, Izin)
+            // Tentukan Status Kehadiran (Hadir, Sakit, Izin)
             // Kalau request status kosong (misal dari Scanner), otomatis anggap 'Hadir'
             $statusKehadiran = $request->status ?? 'Hadir';
 
+            // 🔥 LOGIKA BARU: AMBIL JAM MASUK DARI DATABASE PENGATURAN ADMIN
+            // Jika belum ada data di tabel pengaturan, sistem otomatis pakai jam 07:00:00
+            $pengaturanSistem = Pengaturan::first();
+            $batasJamMasuk = $pengaturanSistem ? $pengaturanSistem->jam_masuk : '07:30:00';
+
             // Cek keterlambatan HANYA JIKA statusnya 'Hadir'
             if ($statusKehadiran == 'Hadir') {
-
-                // Batas waktu keterlambatan dikembalikan ke jam 07:30 pagi
-                // Format waktu menggunakan standar 24 jam (Jam:Menit:Detik)
-                if ($jamSekarang > '07:30:00') {
-
-                    // Jika jam kedatangan lebih dari 07:30:00, ubah status menjadi Terlambat
+                // Membandingkan waktu scan dengan batas jam masuk dari database
+                if ($jamSekarang > $batasJamMasuk) {
                     $statusKehadiran = 'Terlambat';
                 }
             }
@@ -105,7 +106,6 @@ class PiketController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            // INI JURUS DETEKTIFNYA: Menampilkan error database asli ke layar
             return response()->json([
                 'status' => 'error',
                 'message' => 'ERROR DATABASE: '.$e->getMessage(),
