@@ -4,17 +4,30 @@
     <div class="container-fluid">
         <h3 class="fw-bold mb-4">🎓 Data Siswa</h3>
 
-        <div class="d-flex flex-column flex-md-row gap-2 mb-4">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahSiswaModal">
-                + Tambah Siswa Baru
-            </button>
-            <a href="{{ route('siswa.cetak-semua') }}" target="_blank" class="btn btn-dark">
-                🖨️ Cetak Semua QR Code
-            </a>
-        </div>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
 
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#tambahSiswaModal">
+                    + Tambah Siswa Baru
+                </button>
+                <a href="{{ route('siswa.cetak-semua') }}" target="_blank" class="btn btn-dark fw-bold shadow-sm">
+                    🖨️ Cetak Semua QR Code
+                </a>
+            </div>
+
+            <form action="{{ route('siswa.index') }}" method="GET" class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+                <label class="me-2 fw-bold small text-muted text-nowrap">🔍 Filter Kelas:</label>
+                <select name="kelas" class="form-select form-select-sm border-primary" onchange="this.form.submit()" style="min-width: 150px;">
+                    <option value="semua" {{ $kelasPilihan == 'semua' ? 'selected' : '' }}>Semua Kelas</option>
+                    @foreach($daftarKelas as $kelas)
+                        <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                    @endforeach
+                </select>
+            </form>
+
+        </div>
         @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success shadow-sm">{{ session('success') }}</div>
         @endif
 
         <ul class="nav nav-pills nav-fill fw-bold mt-4 shadow-sm p-2 bg-light rounded" id="tabSiswa" role="tablist">
@@ -62,7 +75,7 @@
                                                     <th width="15%">QR Code</th>
                                                     <th>NIS</th>
                                                     <th>Nama Siswa</th>
-                                                    <th width="20%">Aksi</th>
+                                                    <th width="20%" class="text-center">Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -71,21 +84,19 @@
                                                         <td>{{ $no + 1 }}</td>
                                                         <td>
                                                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data={{ $siswa->nis }}"
-                                                                alt="QR">
+                                                                alt="QR" class="border rounded p-1 bg-white">
                                                         </td>
-                                                        <td>{{ $siswa->nis }}</td>
+                                                        <td class="fw-bold">{{ $siswa->nis }}</td>
                                                         <td class="fw-bold text-uppercase">{{ $siswa->nama_siswa }}</td>
                                                         <td>
-                                                            <div class="d-flex align-items-center gap-2">
+                                                            <div class="d-flex align-items-center justify-content-center gap-2">
                                                                 <a href="{{ route('siswa.cetak-qr', $siswa->id) }}"
-                                                                    target="_blank" class="btn btn-sm btn-dark">🖨️ Cetak
-                                                                    QR</a>
+                                                                    target="_blank" class="btn btn-sm btn-dark fw-bold">🖨️ Cetak</a>
                                                                 <form action="{{ route('siswa.destroy', $siswa->id) }}"
                                                                     method="POST"
                                                                     onsubmit="return confirm('Yakin ingin menghapus data siswa ini?')">
                                                                     @csrf @method('DELETE')
-                                                                    <button type="submit" class="btn btn-sm btn-danger">🗑️
-                                                                        Hapus</button>
+                                                                    <button type="submit" class="btn btn-sm btn-danger fw-bold">🗑️ Hapus</button>
                                                                 </form>
                                                             </div>
                                                         </td>
@@ -98,8 +109,8 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="alert alert-light border text-center text-muted py-4 shadow-sm">
-                                📭 Belum ada data siswa yang terdaftar di Kelas Tingkat {{ $tkt }}.
+                            <div class="alert alert-light border text-center text-muted py-4 shadow-sm fw-bold">
+                                📭 Tidak ada data siswa yang cocok di Kelas Tingkat {{ $tkt }}.
                             </div>
                         @endforelse
                     </div>
@@ -107,10 +118,11 @@
                 </div>
             @endforeach
         </div>
+
         <div class="modal fade" id="tambahSiswaModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-light">
                         <h5 class="modal-title fw-bold">Tambah Siswa Baru</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -164,9 +176,9 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Simpan Data</button>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary fw-bold">Simpan Data</button>
                         </div>
                     </form>
                 </div>
