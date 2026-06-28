@@ -46,7 +46,7 @@
                 <div class="card-header bg-white pt-4 pb-3 border-bottom-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                     <h5 class="fw-bold mb-3 mb-md-0">📝 Riwayat Presensi Hari Ini</h5>
 
-                    <form action="{{ route('piket.dashboard') }}" method="GET" class="d-flex align-items-center">
+                    <form action="/piket/dashboard" method="GET" class="d-flex align-items-center">
                         <label class="me-2 fw-bold small text-muted">Filter Kelas:</label>
                         <select name="kelas" class="form-select form-select-sm border-primary" onchange="this.form.submit()" style="width: 150px;">
                             <option value="semua" {{ $kelasPilihan == 'semua' ? 'selected' : '' }}>Semua Kelas</option>
