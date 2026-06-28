@@ -26,97 +26,74 @@
             </form>
 
         </div>
+
         @if (session('success'))
             <div class="alert alert-success shadow-sm">{{ session('success') }}</div>
         @endif
 
-        <ul class="nav nav-pills nav-fill fw-bold mt-4 shadow-sm p-2 bg-light rounded" id="tabSiswa" role="tablist">
-            @foreach (['X', 'XI', 'XII'] as $index => $tkt)
-                <li class="nav-item">
-                    <button class="nav-link {{ $index == 0 ? 'active' : '' }} py-2 text-uppercase shadow-sm"
-                        id="tab-{{ $tkt }}" data-bs-toggle="tab" data-bs-target="#pane-{{ $tkt }}"
-                        type="button">
-                        📁 KELAS TINGKAT {{ $tkt }}
-                    </button>
-                </li>
-            @endforeach
-        </ul>
+        <div class="accordion mt-4" id="accordionSiswa">
+            @forelse($siswaGrouped as $namaKelas => $daftarSiswa)
+                @php
+                    $idKelasSafe = str_replace(' ', '-', $namaKelas);
+                @endphp
 
-        <div class="tab-content mt-4" id="tabSiswaContent">
-            @foreach (['X', 'XI', 'XII'] as $index => $tkt)
-                <div class="tab-pane fade {{ $index == 0 ? 'show active' : '' }}" id="pane-{{ $tkt }}">
+                <div class="accordion-item mb-2 border shadow-sm">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button {{ $kelasPilihan != 'semua' ? '' : 'collapsed' }} fw-bold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse-{{ $idKelasSafe }}">
+                            📂 {{ $namaKelas }} &nbsp;
+                            <span class="badge bg-primary ms-2">{{ $daftarSiswa->count() }} Siswa</span>
+                        </button>
+                    </h2>
+                    <div id="collapse-{{ $idKelasSafe }}" class="accordion-collapse collapse {{ $kelasPilihan != 'semua' ? 'show' : '' }}"
+                        data-bs-parent="#accordionSiswa">
+                        <div class="accordion-body p-0">
 
-                    <div class="accordion" id="accordion-{{ $tkt }}">
-                        @php
-                            $kelasDiTingkatIni = $siswaGrouped->get($tkt, collect());
-                        @endphp
+                            <table class="table table-bordered table-striped mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="15%">QR Code</th>
+                                        <th>NIS</th>
+                                        <th>Nama Siswa</th>
+                                        <th width="20%" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($daftarSiswa as $no => $siswa)
+                                        <tr>
+                                            <td>{{ $no + 1 }}</td>
+                                            <td>
+                                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data={{ $siswa->nis }}"
+                                                    alt="QR" class="border rounded p-1 bg-white">
+                                            </td>
+                                            <td class="fw-bold">{{ $siswa->nis }}</td>
+                                            <td class="fw-bold text-uppercase">{{ $siswa->nama_siswa }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                                    <a href="{{ route('siswa.cetak-qr', $siswa->id) }}"
+                                                        target="_blank" class="btn btn-sm btn-dark fw-bold">🖨️ Cetak</a>
+                                                    <form action="{{ route('siswa.destroy', $siswa->id) }}"
+                                                        method="POST"
+                                                        onsubmit="return confirm('Yakin ingin menghapus data siswa ini?')">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-danger fw-bold">🗑️ Hapus</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
 
-                        @forelse($kelasDiTingkatIni as $namaKelas => $daftarSiswa)
-                            @php
-                                $idKelasSafe = str_replace(' ', '-', $namaKelas);
-                            @endphp
-
-                            <div class="accordion-item mb-2 border shadow-sm">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed fw-bold" type="button"
-                                        data-bs-toggle="collapse" data-bs-target="#collapse-{{ $idKelasSafe }}">
-                                        📂 {{ $namaKelas }} &nbsp;
-                                        <span class="badge bg-primary ms-2">{{ $daftarSiswa->count() }} Siswa</span>
-                                    </button>
-                                </h2>
-                                <div id="collapse-{{ $idKelasSafe }}" class="accordion-collapse collapse"
-                                    data-bs-parent="#accordion-{{ $tkt }}">
-                                    <div class="accordion-body p-0">
-
-                                        <table class="table table-bordered table-striped mb-0">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th width="5%">No</th>
-                                                    <th width="15%">QR Code</th>
-                                                    <th>NIS</th>
-                                                    <th>Nama Siswa</th>
-                                                    <th width="20%" class="text-center">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($daftarSiswa as $no => $siswa)
-                                                    <tr>
-                                                        <td>{{ $no + 1 }}</td>
-                                                        <td>
-                                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data={{ $siswa->nis }}"
-                                                                alt="QR" class="border rounded p-1 bg-white">
-                                                        </td>
-                                                        <td class="fw-bold">{{ $siswa->nis }}</td>
-                                                        <td class="fw-bold text-uppercase">{{ $siswa->nama_siswa }}</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center justify-content-center gap-2">
-                                                                <a href="{{ route('siswa.cetak-qr', $siswa->id) }}"
-                                                                    target="_blank" class="btn btn-sm btn-dark fw-bold">🖨️ Cetak</a>
-                                                                <form action="{{ route('siswa.destroy', $siswa->id) }}"
-                                                                    method="POST"
-                                                                    onsubmit="return confirm('Yakin ingin menghapus data siswa ini?')">
-                                                                    @csrf @method('DELETE')
-                                                                    <button type="submit" class="btn btn-sm btn-danger fw-bold">🗑️ Hapus</button>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="alert alert-light border text-center text-muted py-4 shadow-sm fw-bold">
-                                📭 Tidak ada data siswa yang cocok di Kelas Tingkat {{ $tkt }}.
-                            </div>
-                        @endforelse
+                        </div>
                     </div>
-
                 </div>
-            @endforeach
+            @empty
+                <div class="alert alert-light border text-center text-muted py-4 shadow-sm fw-bold">
+                    📭 Tidak ada data siswa yang cocok dengan filter.
+                </div>
+            @endforelse
         </div>
 
         <div class="modal fade" id="tambahSiswaModal" tabindex="-1" aria-hidden="true">
@@ -143,7 +120,6 @@
                                 <label class="form-label fw-bold">Kelas / Jurusan</label>
                                 <select name="kelas" class="form-select" required>
                                     <option value="">-- Pilih Kelas & Jurusan --</option>
-
                                     <optgroup label="Teknik Komputer Jaringan (TKJ)">
                                         <option value="X TKJ 1">X TKJ 1</option>
                                         <option value="X TKJ 2">X TKJ 2</option>
@@ -152,7 +128,6 @@
                                         <option value="XII TKJ 1">XII TKJ 1</option>
                                         <option value="XII TKJ 2">XII TKJ 2</option>
                                     </optgroup>
-
                                     <optgroup label="Desain Pemodelan dan Bangunan (DPB)">
                                         <option value="X DPB 1">X DPB 1</option>
                                         <option value="X DPB 2">X DPB 2</option>
@@ -161,13 +136,11 @@
                                         <option value="XII DPB 1">XII DPB 1</option>
                                         <option value="XII DPB 2">XII DPB 2</option>
                                     </optgroup>
-
                                     <optgroup label="Rekayasa Perangkat Lunak (RPL)">
                                         <option value="X RPL">X RPL</option>
                                         <option value="XI RPL">XI RPL</option>
                                         <option value="XII RPL">XII RPL</option>
                                     </optgroup>
-
                                     <optgroup label="Akuntansi">
                                         <option value="X AKUTANSI">X AKUTANSI</option>
                                         <option value="XI AKUTANSI">XI AKUTANSI</option>
