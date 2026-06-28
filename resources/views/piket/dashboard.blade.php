@@ -43,8 +43,18 @@
     <div class="row mt-2 mb-5">
         <div class="col-12">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white pt-4 pb-2 border-bottom-0">
-                    <h5 class="fw-bold">📝 Riwayat Presensi Hari Ini</h5>
+                <div class="card-header bg-white pt-4 pb-3 border-bottom-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <h5 class="fw-bold mb-3 mb-md-0">📝 Riwayat Presensi Hari Ini</h5>
+
+                    <form action="{{ route('piket.dashboard') }}" method="GET" class="d-flex align-items-center">
+                        <label class="me-2 fw-bold small text-muted">Filter Kelas:</label>
+                        <select name="kelas" class="form-select form-select-sm border-primary" onchange="this.form.submit()" style="width: 150px;">
+                            <option value="semua" {{ $kelasPilihan == 'semua' ? 'selected' : '' }}>Semua Kelas</option>
+                            @foreach($daftarKelas as $kelas)
+                                <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                            @endforeach
+                        </select>
+                    </form>
                 </div>
                 <div class="card-body overflow-auto">
                     <table class="table table-bordered table-striped align-middle" style="min-width: 600px;">
@@ -111,7 +121,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    </td>
+                                </td>
                             </tr>
                             @empty
                             <tr>

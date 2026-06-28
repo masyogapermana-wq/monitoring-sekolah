@@ -13,19 +13,32 @@ use Illuminate\Http\Request;
 class PiketController extends Controller
 {
     // 1. Halaman Depan / Dashboard Guru Piket
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Ambil tanggal hari ini
         $hariIni = \Carbon\Carbon::today()->toDateString();
 
-        // 2. Ambil data presensi dari database khusus untuk hari ini
-        $presensis = \App\Models\Presensi::with('siswa')
-            ->whereDate('tanggal', $hariIni)
-            ->orderBy('jam_masuk', 'desc')
-            ->get();
+        // Tangkap kelas yang dipilih dari URL (jika ada)
+        $kelasPilihan = $request->get('kelas', 'semua');
 
-        // 3. Kirim variabel $presensis ke halaman dashboard
-        return view('piket.dashboard', compact('presensis'));
+        // Ambil daftar kelas yang unik untuk menu dropdown
+        $daftarKelas = \App\Models\Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
+
+        // Query dasar presensi hari ini
+        $query = \App\Models\Presensi::with('siswa')
+            ->whereDate('tanggal', $hariIni)
+            ->orderBy('jam_masuk', 'desc');
+
+        // Jika guru milih kelas tertentu (bukan 'semua'), filter datanya!
+        if ($kelasPilihan != 'semua') {
+            $query->whereHas('siswa', function ($q) use ($kelasPilihan) {
+                $q->where('kelas', $kelasPilihan);
+            });
+        }
+
+        // Jalankan query-nya
+        $presensis = $query->get();
+
+        return view('piket.dashboard', compact('presensis', 'daftarKelas', 'kelasPilihan'));
     }
 
     // 2. Halaman Scanner Kamera QR
