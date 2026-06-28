@@ -68,39 +68,45 @@ class BkController extends Controller
     }
 
     // =================================================================
-    // 1. FUNGSI LAPORAN PRESENSI (Ditambah fitur Filter Tanggal)
+    // 1. FUNGSI LAPORAN PRESENSI (Ditambah Filter Tanggal & Kelas)
     // =================================================================
     public function laporanPresensi(Request $request)
     {
-        // 1. Ambil parameter filter dari request (jika tidak ada, default ke harian hari ini)
+        // Ambil parameter filter waktu
         $filter = $request->get('filter', 'harian');
         $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
         $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
 
-        // 2. Mulai query dasar untuk mengambil semua siswa beserta relasi presensinya
+        // Ambil parameter filter kelas (Baru nih!)
+        $kelasPilihan = $request->get('kelas', 'semua');
+        $daftarKelas = Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
+
+        // Query dasar ambil data siswa
         $querySiswa = Siswa::orderBy('nama_siswa', 'asc');
 
-        // 3. Tentukan rentang tanggal berdasarkan tipe filter menggunakan Carbon
+        // 🔥 Kalau Guru BK milih kelas tertentu, saring siswanya!
+        if ($kelasPilihan != 'semua') {
+            $querySiswa->where('kelas', $kelasPilihan);
+        }
+
+        // Tentukan rentang tanggal
         if ($filter == 'harian') {
             $startDate = Carbon::parse($tanggalInput)->startOfDay();
             $endDate = Carbon::parse($tanggalInput)->endOfDay();
         } elseif ($filter == 'mingguan') {
-            // Mengambil awal dan akhir minggu dari tanggal yang dipilih siswa
             $startDate = Carbon::parse($tanggalInput)->startOfWeek();
             $endDate = Carbon::parse($tanggalInput)->endOfWeek();
         } elseif ($filter == 'bulanan') {
-            // Mengambil awal dan akhir bulan dari input bulan (Format: Y-m)
-            $startDate = Carbon::parse($bulanInput.'-01')->startOfMonth();
-            $endDate = Carbon::parse($bulanInput.'-01')->endOfMonth();
+            $startDate = Carbon::parse($bulanInput . '-01')->startOfMonth();
+            $endDate = Carbon::parse($bulanInput . '-01')->endOfMonth();
         }
 
-        // 4. Ambil data siswa beserta riwayat presensinya yang sudah disaring berdasarkan rentang tanggal
+        // Ambil data siswa + relasi presensinya yang udah disaring tanggalnya
         $siswas = $querySiswa->with(['presensi' => function ($query) use ($startDate, $endDate) {
             $query->whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()]);
         }])->get();
 
-        // 5. Kirim semua variabel ke tampilan blade
-        return view('bk.laporan-presensi', compact('siswas', 'filter', 'tanggalInput', 'bulanInput', 'startDate', 'endDate'));
+        return view('bk.laporan-presensi', compact('siswas', 'filter', 'tanggalInput', 'bulanInput', 'startDate', 'endDate', 'daftarKelas', 'kelasPilihan'));
     }
 
     // =================================================================
