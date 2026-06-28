@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-6 mt-4">
-            <h3 class="fw-bold mb-4">⚙️ Pengaturan Sistem</h3>
+            <h3 class="fw-bold mb-4"> Pengaturan Sistem</h3>
 
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
