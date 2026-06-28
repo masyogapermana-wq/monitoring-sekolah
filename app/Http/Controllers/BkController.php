@@ -26,18 +26,30 @@ class BkController extends Controller
         return view('bk.dashboard', compact('hadirHariIni', 'terlambatHariIni', 'siswaBermasalah'));
     }
 
-    // FUNGSI LAPORAN PELANGGARAN BK DENGAN FILTER
+    // FUNGSI LAPORAN PELANGGARAN BK (Ditambah Filter Tanggal & Kelas)
     public function laporanPelanggaran(Request $request)
     {
-        // 1. Ambil parameter filter dari request (default harian hari ini)
+        // 1. Ambil parameter filter waktu
         $filter = $request->get('filter', 'harian');
         $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
         $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
 
-        // 2. Query dasar ambil data pelanggaran + relasi siswa dan jenis pelanggarannya
+        // 2. Ambil parameter filter kelas
+        $kelasPilihan = $request->get('kelas', 'semua');
+        // Ambil daftar kelas dari model Siswa untuk opsi dropdown
+        $daftarKelas = \App\Models\Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
+
+        // 3. Query dasar ambil data pelanggaran + relasi siswa dan jenis pelanggarannya
         $query = \App\Models\DataPelanggaran::with(['siswa', 'jenisPelanggaran'])->latest();
 
-        // 3. Tentukan rentang waktu filter
+        // 4. 🔥 Kalau Guru BK milih kelas tertentu, saring pelanggaran berdasarkan kelas siswanya!
+        if ($kelasPilihan != 'semua') {
+            $query->whereHas('siswa', function ($q) use ($kelasPilihan) {
+                $q->where('kelas', $kelasPilihan);
+            });
+        }
+
+        // 5. Tentukan rentang waktu filter
         if ($filter == 'harian') {
             $startDate = Carbon::parse($tanggalInput)->startOfDay();
             $endDate = Carbon::parse($tanggalInput)->endOfDay();
@@ -45,18 +57,17 @@ class BkController extends Controller
             $startDate = Carbon::parse($tanggalInput)->startOfWeek();
             $endDate = Carbon::parse($tanggalInput)->endOfWeek();
         } elseif ($filter == 'bulanan') {
-            $startDate = Carbon::parse($bulanInput.'-01')->startOfMonth();
-            $endDate = Carbon::parse($bulanInput.'-01')->endOfMonth();
+            $startDate = Carbon::parse($bulanInput . '-01')->startOfMonth();
+            $endDate = Carbon::parse($bulanInput . '-01')->endOfMonth();
         }
 
-        // 4. Saring data berdasarkan tanggal_kejadian
+        // 6. Saring data berdasarkan tanggal_kejadian
         $query->whereBetween('tanggal_kejadian', [$startDate->toDateString(), $endDate->toDateString()]);
 
-        // 5. Eksekusi query
+        // 7. Eksekusi query
         $pelanggarans = $query->get();
 
-        // Panggil view dan kirim data (Pastikan nama view sesuai dengan file blade lu, misalnya 'bk.laporan-pelanggaran' atau 'bk.laporan')
-        return view('bk.laporan-pelanggaran', compact('pelanggarans', 'filter', 'tanggalInput', 'bulanInput', 'startDate', 'endDate'));
+        return view('bk.laporan-pelanggaran', compact('pelanggarans', 'filter', 'tanggalInput', 'bulanInput', 'startDate', 'endDate', 'daftarKelas', 'kelasPilihan'));
     }
 
     // Fungsi untuk Cetak Laporan (Halaman Khusus Print)
