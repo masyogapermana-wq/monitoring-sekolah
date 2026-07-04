@@ -30,7 +30,17 @@ class JenisPelanggaranController extends Controller
 
     public function destroy($id)
     {
-        JenisPelanggaran::find($id)->delete();
-        return back()->with('success', 'Jenis pelanggaran berhasil dihapus!');
+        // 1. Kita cari dulu datanya di database
+        $pelanggaran = JenisPelanggaran::find($id);
+
+        // 2. Kita buat logika pengecekan (pengaman)
+        if ($pelanggaran) {
+            // Jika datanya ADA, maka jalankan perintah hapus
+            $pelanggaran->delete();
+            return back()->with('success', 'Jenis pelanggaran berhasil dihapus!');
+        } else {
+            // Jika datanya TIDAK ADA (null), kembalikan ke halaman sebelumnya dengan aman
+            return back()->with('error', 'Data gagal dihapus karena tidak ditemukan di sistem.');
+        }
     }
 }

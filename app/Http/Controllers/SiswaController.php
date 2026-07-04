@@ -48,10 +48,22 @@ class SiswaController extends Controller
         return back()->with('success', 'Data siswa berhasil ditambahkan!');
     }
 
+    // Fungsi untuk menghapus data siswa
     public function destroy($id)
     {
-        Siswa::findOrFail($id)->delete();
-        return back()->with('success', 'Data siswa berhasil dihapus!');
+        // 1. Cari data siswa yang mau dihapus
+        $siswa = Siswa::find($id);
+
+        // 2. Simpan nama kelasnya ke dalam variabel sebelum datanya benar-benar dihapus
+        $kelasSiswa = $siswa->kelas;
+
+        // 3. Hapus data siswa
+        $siswa->delete();
+
+        // 4. Kembali ke halaman sebelumnya dan bawa "pesan rahasia" bernama 'open_folder'
+        return back()
+            ->with('success', 'Data siswa berhasil dihapus!')
+            ->with('open_folder', $kelasSiswa); // Ini kunci utamanya!
     }
 
     public function cetakQr($id)

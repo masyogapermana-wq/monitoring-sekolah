@@ -1,7 +1,7 @@
 <div class="d-flex flex-column bg-light h-100 p-3">
 
     <a href="#" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
-        <span class="fs-4 fw-bold">Menu Utama</span>
+        <span class="fs-4 fw-bold">Menu Utama TESTING</span>
     </a>
     <hr>
 
@@ -15,8 +15,7 @@
                 </a>
             </li>
             <li>
-                <a href="/admin/siswa"
-                    class="nav-link {{ request()->is('admin/siswa') ? 'active' : 'link-dark' }}">
+                <a href="/admin/siswa" class="nav-link {{ request()->is('admin/siswa') ? 'active' : 'link-dark' }}">
                     Data Siswa
                 </a>
             </li>
@@ -26,12 +25,23 @@
                     Data Guru (User)
                 </a>
             </li>
-            <li>
-                <a href="/admin/pelanggaran"
-                    class="nav-link {{ request()->is('admin/pelanggaran') ? 'active' : 'link-dark' }}">
-                    Jenis Pelanggaran
+            <!-- Menu Jenis Pelanggaran -->
+            <li class="nav-item">
+                <a href="/admin/pelanggaran" class="nav-link {{ request()->is('admin/pelanggaran') ? 'active' : '' }}">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Jenis Pelanggaran</span>
                 </a>
             </li>
+
+            <!-- Menu Sanksi Edukatif -->
+            <li class="nav-item">
+                <a href="{{ route('sanksi.index') }}"
+                    class="nav-link {{ request()->routeIs('sanksi.*') ? 'active' : '' }}">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Sanksi Edukatif</span>
+                </a>
+            </li>
+
             <li>
                 <a href="{{ route('admin.pengaturan') }}"
                     class="nav-link {{ request()->is('admin/pengaturan') ? 'active' : 'link-dark' }}">
@@ -63,8 +73,7 @@
 
         @if (Auth::user()->role == 'bk')
             <li class="nav-item">
-                <a href="/bk/dashboard"
-                    class="nav-link {{ request()->is('bk/dashboard') ? 'active' : 'link-dark' }}">
+                <a href="/bk/dashboard" class="nav-link {{ request()->is('bk/dashboard') ? 'active' : 'link-dark' }}">
                     Dashboard
                 </a>
             </li>

@@ -6,7 +6,7 @@ use App\Models\DataPelanggaran;
 use App\Models\JenisPelanggaran;
 use App\Models\Pengaturan;
 use App\Models\Presensi;
-use App\Models\Siswa; // <-- Udah gua tambahin panggil model Pengaturan di sini
+use App\Models\Siswa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -23,10 +23,10 @@ class PiketController extends Controller
         // Ambil daftar kelas yang unik untuk menu dropdown
         $daftarKelas = \App\Models\Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
 
-        // Query dasar presensi hari ini
+        // 🔥 PERBAIKAN 1: Gunakan created_at untuk pencarian tanggal yang 100% akurat dari sistem
         $query = \App\Models\Presensi::with('siswa')
-            ->whereDate('tanggal', $hariIni)
-            ->orderBy('jam_masuk', 'desc');
+            ->whereDate('created_at', $hariIni)
+            ->orderBy('created_at', 'desc');
 
         // Jika guru milih kelas tertentu (bukan 'semua'), filter datanya!
         if ($kelasPilihan != 'semua') {
@@ -86,24 +86,18 @@ class PiketController extends Controller
                 ]);
             }
 
-            // Tentukan Status Kehadiran (Hadir, Sakit, Izin)
-            // Kalau request status kosong (misal dari Scanner), otomatis anggap 'Hadir'
             $statusKehadiran = $request->status ?? 'Hadir';
 
-            // 🔥 LOGIKA BARU: AMBIL JAM MASUK DARI DATABASE PENGATURAN ADMIN
-            // Jika belum ada data di tabel pengaturan, sistem otomatis pakai jam 07:00:00
             $pengaturanSistem = Pengaturan::first();
             $batasJamMasuk = $pengaturanSistem ? $pengaturanSistem->jam_masuk : '07:30:00';
 
-            // Cek keterlambatan HANYA JIKA statusnya 'Hadir'
             if ($statusKehadiran == 'Hadir') {
-                // Membandingkan waktu scan dengan batas jam masuk dari database
                 if ($jamSekarang > $batasJamMasuk) {
                     $statusKehadiran = 'Terlambat';
                 }
             }
 
-            // Simpan data ke tabel presensi
+            // Simpan data ke tabel presensi (Kolom DB lu namanya 'status')
             Presensi::create([
                 'siswa_id' => $siswa->id,
                 'tanggal' => $hariIni,
@@ -129,41 +123,38 @@ class PiketController extends Controller
     // 5. Halaman Form Input Pelanggaran Manual
     public function inputPelanggaran()
     {
-        // Ambil data siswa
         $siswas = Siswa::orderBy('nama_siswa', 'asc')->get();
-
-        // SAKTI: Variabel dihilangkan huruf 's' di belakang agar COCOK dengan blade lu
         $jenisPelanggaran = JenisPelanggaran::orderBy('nama_pelanggaran', 'asc')->get();
 
-        // Panggil nama file view lu yang asli
-        return view('piket.input-pelanggaran', compact('siswas', 'jenisPelanggaran'));
+        // Tambahan: Mengambil data sanksi dari database
+        $sanksiEdukatifs = \App\Models\SanksiEdukatif::orderBy('nama_sanksi', 'asc')->get();
+
+        // Jangan lupa tambahkan 'sanksiEdukatifs' ke dalam compact
+        return view('piket.input-pelanggaran', compact('siswas', 'jenisPelanggaran', 'sanksiEdukatifs'));
     }
 
-    // 6. Menyimpan Data Pelanggaran Siswa (VERSI ANTI GAGAL)
+    // 6. Menyimpan Data Pelanggaran Siswa
     public function storePelanggaran(Request $request)
     {
-        // 1. Validasi kita ubah, sekarang yang wajib itu 'nis', bukan 'siswa_id'
+        // 🔥 PERBAIKAN 2: Ubah validasi 'tanggal_kejadian' menjadi 'tanggal' agar cocok dengan HTML Blade
         $request->validate([
             'nis' => 'required',
             'jenis_pelanggaran_id' => 'required',
             'sanksi' => 'required',
-            'tanggal_kejadian' => 'required',
+            'tanggal' => 'required',
         ]);
 
-        // 2. Kita cari data siswa berdasarkan NIS yang diketik di form
         $siswa = Siswa::where('nis', $request->nis)->first();
 
-        // 3. Kalau ternyata NIS ngasal / nggak ada di database, tolak!
         if (! $siswa) {
             return back()->withErrors(['Siswa dengan NIS tersebut tidak ditemukan di database!'])->withInput();
         }
 
-        // 4. Kalau ketemu, langsung simpan datanya pakai ID si Siswa
         DataPelanggaran::create([
             'siswa_id' => $siswa->id,
             'jenis_pelanggaran_id' => $request->jenis_pelanggaran_id,
             'sanksi' => $request->sanksi,
-            'tanggal_kejadian' => $request->tanggal_kejadian,
+            'tanggal_kejadian' => $request->tanggal, // 🔥 Mengambil nilai dari input name="tanggal"
             'user_id' => auth()->id(),
         ]);
 
@@ -173,17 +164,14 @@ class PiketController extends Controller
     // 7. Melayani pencarian NIS otomatis di form pelanggaran
     public function cekSiswa(Request $request)
     {
-        // Cari siswa berdasarkan NIS yang diketik
         $siswa = Siswa::where('nis', $request->nis)->first();
 
-        // Kalau siswanya nggak ada di database
         if (! $siswa) {
             return response()->json([
                 'status' => 'error',
             ]);
         }
 
-        // Kalau ada, kirim data nama dan ID-nya ke Javascript
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -194,17 +182,15 @@ class PiketController extends Controller
         ]);
     }
 
-    // 8. Proses Update Status Kehadiran (Untuk Kasus Pulang Awal/Sakit)
+    // 8. Proses Update Status Kehadiran
     public function updatePresensi(Request $request, $id)
     {
         $request->validate([
             'status' => 'required',
         ]);
 
-        // Cari data presensi berdasarkan ID yang diklik
         $presensi = Presensi::findOrFail($id);
 
-        // Update statusnya saja (Jam masuknya tidak diubah agar riwayat kedatangan tetap ada)
         $presensi->update([
             'status' => $request->status,
         ]);

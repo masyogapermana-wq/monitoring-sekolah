@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Siswa;
 use App\Models\Presensi;
 use App\Models\DataPelanggaran;
-use App\Models\Pengaturan; // <-- Tambahan untuk memanggil model pengaturan
+use App\Models\Pengaturan;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -19,7 +19,7 @@ class AdminController extends Controller
         $hadirHariIni = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Hadir')->count();
         $pelanggaranHariIni = DataPelanggaran::whereDate('tanggal_kejadian', $hariIni)->count();
 
-        // Kirim datanya ke file view lu
+        // Kirim datanya ke file view
         return view('admin.dashboard', compact('totalSiswa', 'hadirHariIni', 'pelanggaranHariIni'));
     }
 

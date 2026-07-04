@@ -1,123 +1,126 @@
 @extends('layouts.main')
 
+@section('title', 'Laporan Pelanggaran Siswa')
+
 @section('content')
-    <div class="container-fluid">
+<div class="container-fluid">
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-            <h3 class="fw-bold m-0">📑 Laporan Pelanggaran Siswa</h3>
-            <a href="{{ route('bk.cetak', ['filter' => $filter, 'tanggal' => $tanggalInput, 'bulan' => $bulanInput, 'kelas' => $kelasPilihan]) }}" target="_blank" class="btn btn-primary fw-bold shadow-sm">
-                🖨️ Cetak Laporan (PDF)
-            </a>
+    <!-- HEADER & TOMBOL CETAK -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        <div>
+            <h3 class="fw-bold text-white mb-1">
+                <i class="fas fa-file-alt me-2 text-primary"></i> Laporan Pelanggaran Siswa
+            </h3>
+            <p class="text-secondary small mb-0">Kelola dan filter data riwayat pelanggaran tata tertib.</p>
         </div>
+        <div class="mt-3 mt-md-0">
+            <!-- Form untuk cetak PDF yang terhubung dengan filter -->
+            <form action="{{ route('bk.cetak-pelanggaran-pdf') }}" method="GET" target="_blank">
+                <!-- Data filter dikirim secara tersembunyi agar hasil cetak sesuai dengan tampilan -->
+                <input type="hidden" name="filter" value="{{ $filter }}">
+                <input type="hidden" name="tanggal" value="{{ $tanggalInput }}">
+                <input type="hidden" name="bulan" value="{{ $bulanInput }}">
+                <input type="hidden" name="kelas" value="{{ $kelasPilihan }}">
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-3">🔍 Filter Rentang Laporan</h5>
-
-                <form action="{{ route('bk.laporan') }}" method="GET" class="row g-3 align-items-end">
-
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted">Rentang Waktu</label>
-                        <select name="filter" id="filterType" class="form-select" onchange="toggleFilterInput()">
-                            <option value="harian" {{ $filter == 'harian' ? 'selected' : '' }}>📅 Harian</option>
-                            <option value="mingguan" {{ $filter == 'mingguan' ? 'selected' : '' }}>🗓️ Mingguan (Per 7 Hari)</option>
-                            <option value="bulanan" {{ $filter == 'bulanan' ? 'selected' : '' }}>📊 Bulanan</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3" id="inputTanggalGroup">
-                        <label class="form-label small fw-bold text-muted">Pilih Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="{{ $tanggalInput }}">
-                    </div>
-
-                    <div class="col-md-3 d-none" id="inputBulanGroup">
-                        <label class="form-label small fw-bold text-muted">Pilih Bulan & Tahun</label>
-                        <input type="month" name="bulan" class="form-control" value="{{ $bulanInput }}">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-muted">Pilih Kelas</label>
-                        <select name="kelas" class="form-select border-primary">
-                            <option value="semua" {{ $kelasPilihan == 'semua' ? 'selected' : '' }}>-- Semua Kelas --</option>
-                            @foreach($daftarKelas as $kelas)
-                                <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">💾 Terapkan</button>
-                    </div>
-                </form>
-
-                <div class="mt-3 text-muted small border-top pt-2 mt-3">
-                    Menampilkan data dari: <strong class="text-primary">{{ $startDate->translatedFormat('d F Y') }}</strong> s/d <strong class="text-primary">{{ $endDate->translatedFormat('d F Y') }}</strong>
-                    @if($kelasPilihan != 'semua')
-                        <span class="mx-2">|</span> Kelas: <strong class="text-primary">{{ $kelasPilihan }}</strong>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm border-0">
-            <div class="card-body overflow-auto">
-                <table class="table table-bordered table-striped align-middle" style="min-width: 800px;">
-                    <thead class="table-dark">
-                        <tr>
-                            <th width="5%" class="text-center">No</th>
-                            <th>Tanggal</th>
-                            <th>NIS</th>
-                            <th>Nama Siswa</th>
-                            <th>Jurusan</th>
-                            <th>Kelas</th>
-                            <th>Jenis Pelanggaran</th>
-                            <th>Sanksi Edukatif</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($pelanggarans as $no => $item)
-                            <tr>
-                                <td class="text-center">{{ $no + 1 }}</td>
-                                <td>{{ \Carbon\Carbon::parse($item->tanggal_kejadian)->format('d-M-Y') }}</td>
-                                <td>{{ $item->siswa->nis ?? '-' }}</td>
-                                <td class="fw-bold text-uppercase">{{ $item->siswa->nama_siswa ?? 'Data Terhapus' }}</td>
-                                <td>{{ $item->siswa->jurusan ?? '-' }}</td>
-                                <td>{{ $item->siswa->kelas ?? '-' }}</td>
-                                <td>
-                                    <span class="badge bg-danger">
-                                        {{ $item->jenisPelanggaran->nama_pelanggaran ?? '-' }}
-                                    </span>
-                                </td>
-                                <td>{{ $item->sanksi ?? '-' }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted fw-bold py-4">📭 Tidak ada data pelanggaran yang cocok dengan filter.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" style="background: linear-gradient(135deg, #3742fa 0%, #5352ed 100%); border: none;">
+                    <i class="fas fa-print me-2"></i> Cetak Laporan (PDF)
+                </button>
+            </form>
         </div>
     </div>
 
-    <script>
-        function toggleFilterInput() {
-            const filterType = document.getElementById('filterType').value;
-            const tanggalGroup = document.getElementById('inputTanggalGroup');
-            const bulanGroup = document.getElementById('inputBulanGroup');
+    <!-- KARTU FILTER -->
+    <div class="card p-4 mb-4 border-0" style="background-color: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <h6 class="text-white fw-bold mb-3">
+            <i class="fas fa-search me-2 text-info"></i> Filter Rentang Laporan
+        </h6>
 
-            if (filterType === 'harian' || filterType === 'mingguan') {
-                tanggalGroup.classList.remove('d-none');
-                bulanGroup.classList.add('d-none');
-            } else if (filterType === 'bulanan') {
-                tanggalGroup.classList.add('d-none');
-                bulanGroup.classList.remove('d-none');
-            }
-        }
+        <!-- Form Filter Utama -->
+        <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-end">
 
-        document.addEventListener("DOMContentLoaded", function() {
-            toggleFilterInput();
-        });
-    </script>
+            <!-- Filter Rentang Waktu -->
+            <div class="col-md-3">
+                <label class="form-label text-secondary small fw-bold">Rentang Waktu</label>
+                <select name="filter" class="form-select" style="background-color: #0f172a; border: 1px solid #334155; color: white;" onchange="this.form.submit()">
+                    <option value="harian" {{ $filter == 'harian' ? 'selected' : '' }}>📅 Harian</option>
+                    <option value="mingguan" {{ $filter == 'mingguan' ? 'selected' : '' }}>📅 Mingguan</option>
+                    <option value="bulanan" {{ $filter == 'bulanan' ? 'selected' : '' }}>📅 Bulanan</option>
+                </select>
+            </div>
+
+            <!-- Filter Pilih Tanggal (Harian/Mingguan) -->
+            <div class="col-md-3">
+                <label class="form-label text-secondary small fw-bold">Pilih Tanggal</label>
+                <input type="date" name="tanggal" value="{{ $tanggalInput }}" class="form-control" style="background-color: #0f172a; border: 1px solid #334155; color: white;">
+            </div>
+
+            <!-- Filter Pilih Kelas -->
+            <div class="col-md-4">
+                <label class="form-label text-secondary small fw-bold">Pilih Kelas</label>
+                <select name="kelas" class="form-select" style="background-color: #0f172a; border: 1px solid #334155; color: white;">
+                    <option value="semua">-- Semua Kelas --</option>
+                    @foreach($daftarKelas as $kelas)
+                        <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Tombol Terapkan -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100 fw-bold text-white shadow-sm" style="border-radius: 8px;">
+                    <i class="fas fa-filter me-1"></i> Terapkan
+                </button>
+            </div>
+
+        </form>
+
+        <!-- Informasi Tanggal Aktif -->
+        <div class="mt-4 text-secondary small border-top pt-3" style="border-color: rgba(255,255,255,0.05) !important;">
+            Menampilkan data dari:
+            <span class="text-info fw-bold">{{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }}</span>
+            s/d
+            <span class="text-info fw-bold">{{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}</span>
+        </div>
+    </div>
+
+    <!-- KARTU TABEL DATA -->
+    <div class="card p-0 border-0" style="background-color: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0" style="background-color: transparent;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2); width: 5%;">No</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Tanggal</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">NIS</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Nama Siswa</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Kelas</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Jenis Pelanggaran</th>
+                        <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Sanksi Edukatif</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($pelanggarans as $index => $pelanggaran)
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td class="px-4 py-3 align-middle text-secondary">{{ $index + 1 }}</td>
+                            <td class="px-4 py-3 align-middle text-light">{{ \Carbon\Carbon::parse($pelanggaran->tanggal_kejadian)->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 align-middle text-light">{{ $pelanggaran->siswa->nis ?? '-' }}</td>
+                            <td class="px-4 py-3 align-middle text-light fw-bold">{{ $pelanggaran->siswa->nama_siswa ?? '-' }}</td>
+                            <td class="px-4 py-3 align-middle text-light">{{ $pelanggaran->siswa->kelas ?? '-' }}</td>
+                            <td class="px-4 py-3 align-middle text-warning">{{ $pelanggaran->jenisPelanggaran->nama_pelanggaran ?? '-' }}</td>
+                            <td class="px-4 py-3 align-middle text-light">{{ $pelanggaran->sanksi }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-2x mb-3 text-secondary" style="opacity: 0.5;"></i><br>
+                                Tidak ada data pelanggaran yang cocok dengan filter.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
 @endsection

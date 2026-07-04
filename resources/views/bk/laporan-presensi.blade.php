@@ -1,138 +1,158 @@
 @extends('layouts.main')
 
+@section('title', 'Laporan Presensi Siswa')
+
 @section('content')
-<div class="container-fluid">
+    <div class="container-fluid">
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <h4 class="fw-bold m-0">📄 Laporan Presensi Siswa</h4>
-        <a href="{{ route('bk.cetak-presensi', ['filter' => $filter, 'tanggal' => $tanggalInput, 'bulan' => $bulanInput, 'kelas' => $kelasPilihan]) }}" target="_blank" class="btn btn-primary fw-bold shadow-sm">
-            🖨️ Cetak Laporan (PDF)
-        </a>
-    </div>
+        <!-- HEADER & TOMBOL CETAK -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h3 class="fw-bold text-white mb-1">
+                    <i class="fas fa-calendar-check me-2 text-primary"></i> Laporan Presensi Siswa
+                </h3>
+                <p class="text-secondary small mb-0">Pantau kehadiran dan filter data presensi siswa.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <!-- Form untuk cetak PDF berdasarkan tanggal yang sedang difilter -->
+                <!-- Form untuk cetak PDF berdasarkan tanggal yang sedang difilter -->
+                <form action="{{ route('bk.cetak-pdf') }}" method="GET" target="_blank">
+                    <!-- Mengirim parameter tanggal secara tersembunyi -->
+                    <input type="hidden" name="tanggal" value="{{ $tanggalInput ?? request('tanggal') }}">
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <h5 class="fw-bold mb-3">🔍 Filter Laporan Presensi</h5>
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" style="...">
+                        <i class="fas fa-print me-2"></i> Cetak Laporan (PDF)
+                    </button>
+                </form>
+            </div>
+        </div>
 
-            <form action="{{ route('bk.laporan-presensi') }}" method="GET" class="row g-3 align-items-end">
+        <!-- KARTU FILTER -->
+        <div class="card p-4 mb-4 border-0"
+            style="background-color: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h6 class="text-white fw-bold mb-3">
+                <i class="fas fa-search me-2 text-info"></i> Filter Laporan Presensi
+            </h6>
 
+            <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-end">
+
+                <!-- Filter Rentang Waktu -->
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted">Rentang Waktu</label>
-                    <select name="filter" id="filterType" class="form-select" onchange="toggleFilterInput()">
+                    <label class="form-label text-secondary small fw-bold">Rentang Waktu</label>
+                    <select name="filter" class="form-select"
+                        style="background-color: #0f172a; border: 1px solid #334155; color: white;"
+                        onchange="this.form.submit()">
                         <option value="harian" {{ $filter == 'harian' ? 'selected' : '' }}>📅 Harian</option>
-                        <option value="mingguan" {{ $filter == 'mingguan' ? 'selected' : '' }}>🗓️ Mingguan</option>
-                        <option value="bulanan" {{ $filter == 'bulanan' ? 'selected' : '' }}>📊 Bulanan</option>
+                        <option value="mingguan" {{ $filter == 'mingguan' ? 'selected' : '' }}>📅 Mingguan</option>
+                        <option value="bulanan" {{ $filter == 'bulanan' ? 'selected' : '' }}>📅 Bulanan</option>
                     </select>
                 </div>
 
-                <div class="col-md-3" id="inputTanggalGroup">
-                    <label class="form-label small fw-bold text-muted">Pilih Tanggal</label>
-                    <input type="date" name="tanggal" class="form-control" value="{{ $tanggalInput }}">
+                <!-- Filter Pilih Tanggal -->
+                <div class="col-md-3">
+                    <label class="form-label text-secondary small fw-bold">Pilih Tanggal</label>
+                    <input type="date" name="tanggal" value="{{ $tanggalInput }}" class="form-control"
+                        style="background-color: #0f172a; border: 1px solid #334155; color: white;">
                 </div>
 
-                <div class="col-md-3 d-none" id="inputBulanGroup">
-                    <label class="form-label small fw-bold text-muted">Pilih Bulan & Tahun</label>
-                    <input type="month" name="bulan" class="form-control" value="{{ $bulanInput }}">
-                </div>
-
+                <!-- Filter Pilih Kelas -->
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted">Pilih Kelas</label>
-                    <select name="kelas" class="form-select border-primary">
-                        <option value="semua" {{ $kelasPilihan == 'semua' ? 'selected' : '' }}>-- Semua Kelas --</option>
-                        @foreach($daftarKelas as $kelas)
-                            <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+                    <label class="form-label text-secondary small fw-bold">Pilih Kelas</label>
+                    <select name="kelas" class="form-select"
+                        style="background-color: #0f172a; border: 1px solid #334155; color: white;">
+                        <option value="semua">-- Semua Kelas --</option>
+                        @foreach ($daftarKelas as $kelas)
+                            <option value="{{ $kelas }}" {{ $kelasPilihan == $kelas ? 'selected' : '' }}>
+                                {{ $kelas }}</option>
                         @endforeach
                     </select>
                 </div>
 
+                <!-- Tombol Terapkan -->
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">💾 Terapkan</button>
+                    <button type="submit" class="btn btn-info w-100 fw-bold text-white shadow-sm"
+                        style="border-radius: 8px;">
+                        <i class="fas fa-filter me-1"></i> Terapkan
+                    </button>
                 </div>
+
             </form>
 
-            <div class="mt-3 text-muted small border-top pt-2 mt-3">
-                Menampilkan data dari: <strong class="text-primary">{{ $startDate->translatedFormat('d F Y') }}</strong> s/d <strong class="text-primary">{{ $endDate->translatedFormat('d F Y') }}</strong>
-                @if($kelasPilihan != 'semua')
-                    <span class="mx-2">|</span> Kelas: <strong class="text-primary">{{ $kelasPilihan }}</strong>
-                @endif
+            <!-- Info Tanggal -->
+            <div class="mt-4 text-secondary small border-top pt-3" style="border-color: rgba(255,255,255,0.05) !important;">
+                Menampilkan data dari:
+                <span class="text-info fw-bold">{{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }}</span>
+                s/d
+                <span class="text-info fw-bold">{{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}</span>
             </div>
         </div>
-    </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body overflow-auto">
-            <table class="table table-bordered table-striped" style="min-width: 600px;">
-                <thead class="table-dark align-middle">
-                    <tr>
-                        <th width="5%" class="text-center">No</th>
-                        <th width="15%">NIS</th>
-                        <th>Nama Siswa</th>
-                        <th width="15%">Kelas</th>
-                        <th width="15%" class="text-center">Jam Masuk</th>
-                        <th width="15%" class="text-center">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="align-middle">
-                    @forelse($siswas as $index => $siswa)
-                        @php
-                            $absen = $siswa->presensi->first();
-                        @endphp
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $siswa->nis }}</td>
-                            <td class="fw-bold text-uppercase">{{ $siswa->nama_siswa }}</td>
-                            <td>{{ $siswa->kelas }}</td>
+        <!-- KARTU TABEL DATA -->
+        <div class="card p-0 border-0"
+            style="background-color: #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0" style="background-color: transparent;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2); width: 5%;">No
+                            </th>
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">NIS</th>
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Nama Siswa</th>
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Kelas</th>
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Jam Masuk</th>
+                            <th class="px-4 py-3 text-secondary" style="background-color: rgba(0,0,0,0.2);">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($siswas as $index => $siswa)
+                            @php
+                                // Mengambil data presensi dari relasi yang sudah kita buat di Controller
+                                $presensi = $siswa->presensi->first();
+                            @endphp
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td class="px-4 py-3 align-middle text-secondary">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 align-middle text-light">{{ $siswa->nis }}</td>
+                                <td class="px-4 py-3 align-middle text-light fw-bold">{{ $siswa->nama_siswa }}</td>
+                                <td class="px-4 py-3 align-middle text-light">{{ $siswa->kelas }}</td>
 
-                            <td class="text-center">
-                                @if($absen)
-                                    {{ \Carbon\Carbon::parse($absen->jam_masuk)->format('H:i') }} WIB
-                                @else
-                                    <span class="text-danger fw-bold">-</span>
-                                @endif
-                            </td>
+                                <!-- Kolom Jam Masuk -->
+                                <td class="px-4 py-3 align-middle text-light">
+                                    {{ $presensi && $presensi->jam_masuk ? \Carbon\Carbon::parse($presensi->jam_masuk)->format('H:i') . ' WIB' : '-' }}
+                                </td>
 
-                            <td class="text-center">
-                                @if($absen)
-                                    @if($absen->status == 'Hadir')
-                                        <span class="badge bg-success">Hadir</span>
-                                    @elseif($absen->status == 'Terlambat')
-                                        <span class="badge bg-warning text-dark">Terlambat</span>
+                                <!-- Kolom Status Pakai Badge -->
+                                <td class="px-4 py-3 align-middle">
+                                    @if ($presensi)
+                                        @if ($presensi->status == 'Hadir')
+                                            <span class="badge bg-success px-3 py-2 rounded-pill">Hadir</span>
+                                        @elseif($presensi->status == 'Terlambat')
+                                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">Terlambat</span>
+                                        @elseif($presensi->status == 'Izin')
+                                            <span class="badge bg-info text-dark px-3 py-2 rounded-pill">Izin</span>
+                                        @elseif($presensi->status == 'Sakit')
+                                            <span class="badge bg-primary px-3 py-2 rounded-pill">Sakit</span>
+                                        @else
+                                            <span
+                                                class="badge bg-secondary px-3 py-2 rounded-pill">{{ $presensi->status }}</span>
+                                        @endif
                                     @else
-                                        <span class="badge bg-info text-dark">{{ $absen->status }}</span>
+                                        <!-- Jika tidak ada data presensi, otomatis Alpa -->
+                                        <span class="badge bg-danger px-3 py-2 rounded-pill">Alpa</span>
                                     @endif
-                                @else
-                                    <span class="badge bg-danger">Alpa</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4 fw-bold">📭 Tidak ada data siswa yang cocok dengan filter.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-users fa-2x mb-3 text-secondary" style="opacity: 0.5;"></i><br>
+                                    Tidak ada data siswa yang cocok dengan filter.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
-</div>
-
-<script>
-    function toggleFilterInput() {
-        const filterType = document.getElementById('filterType').value;
-        const tanggalGroup = document.getElementById('inputTanggalGroup');
-        const bulanGroup = document.getElementById('inputBulanGroup');
-
-        if (filterType === 'harian' || filterType === 'mingguan') {
-            tanggalGroup.classList.remove('d-none');
-            bulanGroup.classList.add('d-none');
-        } else if (filterType === 'bulanan') {
-            tanggalGroup.classList.add('d-none');
-            bulanGroup.classList.remove('d-none');
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        toggleFilterInput();
-    });
-</script>
 @endsection

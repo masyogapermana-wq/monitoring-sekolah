@@ -28,27 +28,41 @@ class AuthController extends Controller
             'password' => $request->password,
         ];
 
-        if (Auth::attempt($infologin)) {
+        // Auth::attempt mengecek database. Parameter kedua untuk mengecek checkbox "Ingat Saya"
+        if (Auth::attempt($infologin, $request->has('remember'))) {
+
+            // PENTING: Mencegah serangan pembajakan sesi (Session Fixation)
+            $request->session()->regenerate();
+
             // Kalau sukses, cek role-nya
             $user = Auth::user();
 
             if ($user->role == 'admin') {
-                return redirect('admin/dashboard');
+                return redirect()->intended('admin/dashboard');
             } elseif ($user->role == 'piket') {
-                return redirect('piket/dashboard');
+                return redirect()->intended('piket/dashboard');
             } elseif ($user->role == 'bk') {
-                return redirect('bk/dashboard');
+                return redirect()->intended('bk/dashboard');
             }
         }
 
-        // Kalau gagal
-        return redirect('/')->withErrors('Email atau Password salah')->withInput();
+        // Kalau gagal, kembalikan ke halaman form login bawa pesan error
+        return back()->withErrors([
+            'email' => 'Email atau Kata Sandi yang Anda masukkan salah.',
+        ])->onlyInput('email'); // Mempertahankan input email biar gak ngetik ulang
     }
 
     // 3. Logout
-    public function logout()
+    public function logout(Request $request)
     {
+        // 1. Menghapus sesi login secara resmi
         Auth::logout();
+
+        // 2. Membersihkan sisa memori sesi agar aman
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // 3. Mengarahkan paksa kembali ke halaman utama (URL: /)
         return redirect('/');
     }
 }
