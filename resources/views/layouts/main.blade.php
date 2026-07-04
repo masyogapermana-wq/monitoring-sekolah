@@ -123,7 +123,7 @@
     <!-- BAGIAN KIRI: SIDEBAR -->
     <div class="sidebar d-flex flex-column py-4" id="sidebarMenu">
         <div class="text-center mb-4 px-3">
-            <img src="/images/logo-smk.png.jpg" alt="Logo SMK Pembangunan"
+            <img src="{{ asset('images/logo-smk.png.jpg') }}" alt="Logo SMK Pembangunan" class="...">
                 class="bg-white rounded-circle p-1 mb-2 shadow-sm" style="width: 65px;">
             <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 0.5px;">SMK Pembangunan</h5>
 
