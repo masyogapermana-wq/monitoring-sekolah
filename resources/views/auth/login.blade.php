@@ -35,9 +35,17 @@
 
         /* Mesin Penggerak Animasi Latar Belakang */
         @keyframes gradientBergerak {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         /* ==========================================================
@@ -74,7 +82,8 @@
 
         /* 4. Desain Input Form Mode Gelap (Transparan) */
         .form-control-dark {
-            background-color: rgba(39, 49, 66, 0.7); /* Ikut dibuat sedikit tembus pandang */
+            background-color: rgba(39, 49, 66, 0.7);
+            /* Ikut dibuat sedikit tembus pandang */
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             padding: 1rem 1.2rem;
@@ -87,11 +96,12 @@
             color: #64748b;
         }
 
-        .form-control-dark:focus {
-            background-color: rgba(47, 59, 79, 0.9);
-            border-color: #00d2ff;
-            color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.25);
+        .form-control:focus {
+            background-color: #1e293b !important;
+            color: white !important;
+            border-color: #3b82f6 !important;
+            /* Warna biru saat diklik */
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
         }
 
         /* 5. Efek Tombol Neon Bersinar */
@@ -132,14 +142,26 @@
 
         /* 7. Pengaturan Layar HP */
         @media (max-width: 576px) {
-            body { padding: 10px; }
+            body {
+                padding: 10px;
+            }
+
             .login-card {
                 padding: 2rem 1.5rem;
                 margin: auto 10px;
                 width: auto;
             }
-            .form-control-dark, .btn-glow, .btn-google-dark { padding: 0.8rem 1rem; }
-            .text-center img { width: 60px !important; margin-bottom: 0.8rem !important; }
+
+            .form-control-dark,
+            .btn-glow,
+            .btn-google-dark {
+                padding: 0.8rem 1rem;
+            }
+
+            .text-center img {
+                width: 60px !important;
+                margin-bottom: 0.8rem !important;
+            }
         }
     </style>
 </head>
@@ -171,19 +193,25 @@
                     required>
             </div>
 
-            <!-- KELOMPOK INPUT KATA SANDI -->
+            <!-- KATA SANDI -->
             <div class="mb-4">
-                <label for="passwordInput" class="form-label text-white small fw-bold">KATA SANDI</label>
+                <label class="form-label text-secondary small fw-bold text-uppercase">Kata Sandi</label>
 
-                <div class="input-group">
-                    <input type="password" name="password" id="passwordInput" class="form-control p-3"
-                        style="background-color: rgba(232, 240, 254, 0.9); color: #000; border: 2px solid rgba(255,255,255,0.2); border-right: none;"
-                        placeholder="Masukkan kata sandi" required>
+                <!-- Input Group dengan shadow dan rounded corners -->
+                <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
 
+                    <!-- Input Password (Background disamakan dengan Email, border kanan dihilangkan) -->
+                    <input type="password" name="password" id="password" class="form-control"
+                        placeholder="Masukkan kata sandi"
+                        style="background-color: #1e293b; border: 1px solid #334155; border-right: none; color: white; padding: 12px 16px; box-shadow: none;"
+                        required>
+
+                    <!-- Tombol Mata (Background disamakan, border kiri dihilangkan agar menyatu) -->
                     <button class="btn" type="button" id="togglePassword"
-                        style="background-color: rgba(232, 240, 254, 0.9); border: 2px solid rgba(255,255,255,0.2); border-left: none;">
-                        <i class="fas fa-eye text-secondary" id="eyeIcon"></i>
+                        style="background-color: #1e293b; border: 1px solid #334155; border-left: none; color: #94a3b8; padding: 0 16px;">
+                        <i class="fas fa-eye-slash" id="eyeIcon"></i>
                     </button>
+
                 </div>
             </div>
 
