@@ -11,11 +11,11 @@
         <p class="text-secondary small">Pantau evaluasi presensi dan pelanggaran tata tertib siswa hari ini.</p>
     </div>
 
-    <!-- KARTU STATISTIK (Hadir & Terlambat) -->
+    <!-- KARTU STATISTIK (Hadir, Terlambat, & Alpa) -->
     <div class="row g-4 mb-4">
 
         <!-- Kartu Hadir -->
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(46, 213, 115, 0.2); transition: transform 0.3s;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Kartu Terlambat -->
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #ffa502 0%, #ff7f50 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(255, 165, 2, 0.2); transition: transform 0.3s;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -39,6 +39,21 @@
                     </div>
                     <div class="bg-white bg-opacity-25 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                         <i class="fas fa-clock text-white fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kartu Alpa (Merah) -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(255, 71, 87, 0.2); transition: transform 0.3s;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white mb-1 opacity-75 fw-bold">Alpa Hari Ini</p>
+                        <h2 class="text-white fw-bold mb-0">{{ $totalAlpa ?? 0 }} <span class="fs-6 fw-normal">Siswa</span></h2>
+                    </div>
+                    <div class="bg-white bg-opacity-25 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-user-times text-white fs-3"></i>
                     </div>
                 </div>
             </div>
@@ -121,18 +136,24 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. Menampung data dari Controller ke dalam variabel JavaScript
         const dataHadir = {{ $totalHadir ?? 0 }};
         const dataTerlambat = {{ $totalTerlambat ?? 0 }};
+        const dataAlpa = {{ $totalAlpa ?? 0 }}; // Variabel baru untuk Alpa
 
         const ctx = document.getElementById('kehadiranChart').getContext('2d');
 
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Hadir', 'Terlambat'],
+                // 2. Menambahkan nama label 'Alpa' di urutan ketiga
+                labels: ['Hadir', 'Terlambat', 'Alpa'],
                 datasets: [{
-                    data: [dataHadir, dataTerlambat],
-                    backgroundColor: ['#2ed573', '#ffa502'],
+                    // 3. Memasukkan angka dari variabel dataAlpa
+                    data: [dataHadir, dataTerlambat, dataAlpa],
+
+                    // 4. Menambahkan warna merah (#ff4757) untuk irisan Alpa
+                    backgroundColor: ['#2ed573', '#ffa502', '#ff4757'],
                     borderWidth: 0,
                     hoverOffset: 5
                 }]

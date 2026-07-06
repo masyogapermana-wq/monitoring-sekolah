@@ -10,14 +10,8 @@ use App\Http\Controllers\SanksiEdukatifController;
 |--------------------------------------------------------------------------
 */
 Route::middleware(['guest'])->group(function () {
-    // 1. Menampilkan form login di halaman utama (URL: /)
     Route::get('/', [AuthController::class, 'index'])->name('login');
-
-    // 2. Memproses data yang dikirim dari form login (Metode POST)
     Route::post('/login', [AuthController::class, 'login']);
-
-    // 3. JALUR CADANGAN PENCEGAH ERROR:
-    // Jika sistem/pengguna mencoba membuka URL /login secara langsung, kembalikan ke /
     Route::get('/login', function () {
         return redirect('/');
     });
@@ -31,7 +25,7 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth'])->group(function () {
 
     // ==========================================
-    // 1. ROUTE ADMIN
+    // 1. ROUTE KHUSUS ADMIN
     // ==========================================
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'index'])->name('admin.dashboard');
@@ -66,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==========================================
-    // 2. ROUTE GURU PIKET
+    // 2. ROUTE KHUSUS GURU PIKET
     // ==========================================
     Route::middleware(['role:piket'])->group(function () {
         Route::get('/piket/dashboard', [App\Http\Controllers\PiketController::class, 'index']);
@@ -84,11 +78,16 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==========================================
-    // 3. ROUTE GURU BK
+    // 3. ROUTE KHUSUS GURU BK
     // ==========================================
     Route::middleware(['role:bk'])->group(function () {
         Route::get('/bk/dashboard', [App\Http\Controllers\BkController::class, 'index'])->name('bk.dashboard');
+    });
 
+    // ==========================================
+    // 4. ROUTE BERSAMA (BISA DIAKSES ADMIN & BK)
+    // ==========================================
+    Route::middleware(['role:admin,bk'])->group(function () {
         // Laporan Pelanggaran
         Route::get('/bk/laporan-pelanggaran', [App\Http\Controllers\BkController::class, 'laporanPelanggaran'])->name('bk.laporan');
         Route::get('/bk/cetak-laporan', [App\Http\Controllers\BkController::class, 'cetakLaporan'])->name('bk.cetak');
@@ -96,18 +95,14 @@ Route::middleware(['auth'])->group(function () {
         // Laporan Presensi
         Route::get('/bk/laporan-presensi', [App\Http\Controllers\BkController::class, 'laporanPresensi'])->name('bk.laporan-presensi');
         Route::get('/bk/cetak-presensi', [App\Http\Controllers\BkController::class, 'cetakPresensi'])->name('bk.cetak-presensi');
-        // ... (rute laporan presensi sebelumnya)
 
-        // KODE BARU KITA ADA DI SINI: Route Cetak PDF Presensi & Pelanggaran
+        // Cetak PDF
         Route::get('/bk/cetak-pdf', [App\Http\Controllers\BkController::class, 'cetakPdf'])->name('bk.cetak-pdf');
         Route::get('/bk/cetak-pelanggaran-pdf', [App\Http\Controllers\BkController::class, 'cetakPelanggaranPdf'])->name('bk.cetak-pelanggaran-pdf');
-
-        // KODE BARU KITA ADA DI SINI: Route Cetak PDF
-        Route::get('/bk/cetak-pdf', [App\Http\Controllers\BkController::class, 'cetakPdf'])->name('bk.cetak-pdf');
     });
 
     // ==========================================
-    // 4. ROUTE LOGOUT (Bisa diakses semua role)
+    // 5. ROUTE LOGOUT (Bisa diakses semua role)
     // ==========================================
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/logout', [AuthController::class, 'logout']);

@@ -1,36 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Laporan Pelanggaran - SMK Pembangunan</title>
     <style>
-        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #000; }
-        .kop-surat { width: 100%; border-bottom: 3px double #000; padding-bottom: 5px; margin-bottom: 15px; }
-        .kop-surat td { text-align: center; }
-        .logo { width: 80px; }
-        .teks-kop h4, .teks-kop h3 { margin: 0; font-weight: bold; }
-        .teks-kop h3 { font-size: 16px; }
-        .teks-kop h4 { font-size: 14px; }
-        .teks-kop p { margin: 2px 0 0 0; font-size: 10px; }
+        body { font-family: sans-serif; font-size: 12px; }
 
-        .judul-laporan { text-align: center; font-weight: bold; text-decoration: underline; margin-bottom: 15px; font-size: 14px; }
-        .info-tanggal { font-weight: bold; margin-bottom: 5px; }
+        /* =========================================
+           1. CSS KOP SURAT (Desain Bersih)
+           ========================================= */
+        .kop-surat { width: 100%; border-collapse: collapse; border: none; border-bottom: 2px solid #000; margin-bottom: 20px; }
+        .kop-surat td { border: none; padding: 5px; }
+        .kop-teks { text-align: center; }
+        .kop-teks h3 { margin: 0; padding: 0; font-size: 16px; }
+        .kop-teks p { margin: 2px 0; font-size: 11px; }
 
-        table.data { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        table.data th, table.data td { border: 1px solid #000; padding: 6px; }
-        table.data th { text-align: center; font-weight: bold; font-size: 11px; background-color: #f2f2f2; }
+        /* =========================================
+           2. CSS JUDUL & INFO
+           ========================================= */
+        .judul-laporan { text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 15px; text-decoration: underline; }
+        .info-tanggal { margin-bottom: 15px; font-weight: bold; }
+
+        /* =========================================
+           3. CSS TABEL DATA (Desain Rapi)
+           ========================================= */
+        .tabel-data { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; }
+        .tabel-data th, .tabel-data td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
+        .tabel-data th { background-color: #f2f2f2; text-align: center; font-weight: bold; }
         .text-center { text-align: center; }
 
+        /* =========================================
+           4. CSS TANDA TANGAN (Dikembalikan dari kodemu)
+           ========================================= */
         .ttd-container { width: 250px; float: right; text-align: center; margin-top: 20px; }
         .nama-ttd { font-weight: bold; text-decoration: underline; margin-top: 60px; }
     </style>
 </head>
 <body>
 
+    <!-- KOP SURAT -->
     <table class="kop-surat">
         <tr>
-            <td width="15%">
+            <!-- Kolom Logo -->
+            <td style="width: 15%; text-align: center;">
+                <!-- Logika Base64 Image (Dipertahankan agar anti-error di DomPDF) -->
                 @php
-                    // Alamat logo sudah disesuaikan dengan folder images milikmu
                     $path = public_path('images/logo-smk.png.jpg');
                     if(file_exists($path)) {
                         $type = pathinfo($path, PATHINFO_EXTENSION);
@@ -40,32 +54,38 @@
                         $base64 = '';
                     }
                 @endphp
+
                 @if($base64)
-                    <img src="{{ $base64 }}" class="logo" alt="Logo SMK Pembangunan">
+                    <img src="{{ $base64 }}" alt="Logo SMK Pembangunan" style="width: 75px; height: auto;">
                 @else
                     <span style="font-size: 10px; color: red;">File logo gagal dimuat</span>
                 @endif
             </td>
-            <td width="85%" class="teks-kop">
-                <h4>YAYASAN PONDOK PESANTREN AL - FATTAH KIKIL ARJOSARI</h4>
-                <h4>KABUPATEN PACITAN</h4>
+
+            <!-- Kolom Teks -->
+            <td style="width: 70%;" class="kop-teks">
                 <h3>SEKOLAH MENENGAH KEJURUAN PEMBANGUNAN</h3>
-                <p>1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak 4. Akuntansi dan Keuangan Lembaga</p>
+                <p>1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak 4. Akuntansi</p>
                 <p>NPSN : 20510982</p>
                 <p>Jl. Nawangan Km. 01 Arjosari Pacitan. Telp./Fax (0357) 631008</p>
-                <p>Website : http://smkpembangunanpacitan.sch.id Email : smkpembangunan_pct@yahoo.com</p>
+                <p>Website: http://smkpembangunanpacitan.sch.id &nbsp; Email: smkpembangunan_pct@yahoo.com</p>
             </td>
+
+            <!-- Kolom Penyeimbang -->
+            <td style="width: 15%;"></td>
         </tr>
     </table>
 
+    <!-- JUDUL -->
     <div class="judul-laporan">LAPORAN REKAPITULASI PELANGGARAN SISWA</div>
 
     <div class="info-tanggal">
         Tanggal Cetak: {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }} <br>
-        Filter: {{ ucfirst($filter) }}
+        Filter: {{ ucfirst($filter ?? 'Harian') }}
     </div>
 
-    <table class="data">
+    <!-- TABEL DATA -->
+    <table class="tabel-data">
         <thead>
             <tr>
                 <th width="5%">NO</th>
@@ -94,6 +114,7 @@
         </tbody>
     </table>
 
+    <!-- AREA TANDA TANGAN (Dipertahankan dari kodemu) -->
     <div class="ttd-container">
         <p>Pacitan, {{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}<br>Guru Bimbingan Konseling (BK)</p>
         <div class="nama-ttd">Nama Guru BK, S.Pd.</div>

@@ -18,15 +18,27 @@ class BkController extends Controller
     public function index()
     {
         $hariIni = Carbon::today()->toDateString();
+
+        // Menghitung Hadir dan Terlambat
         $totalHadir = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Hadir')->count();
         $totalTerlambat = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Terlambat')->count();
+
+        // LOGIKA BARU: Menghitung Alpa
+        $totalSiswa = Siswa::count(); // Ambil total semua siswa di database
+        $siswaSudahAbsen = Presensi::whereDate('tanggal', $hariIni)->count(); // Berapa yang sudah absen hari ini (hadir + telat)
+
+        $totalAlpa = $totalSiswa - $siswaSudahAbsen;
+
+        // Mencegah angka minus (berjaga-jaga jika ada siswa absen 2 kali)
+        $totalAlpa = $totalAlpa < 0 ? 0 : $totalAlpa;
 
         $pelanggarans = DataPelanggaran::with(['siswa', 'jenisPelanggaran'])
             ->latest()
             ->take(5)
             ->get();
 
-        return view('bk.dashboard', compact('totalHadir', 'totalTerlambat', 'pelanggarans'));
+        // Jangan lupa tambahkan 'totalAlpa' ke dalam compact()
+        return view('bk.dashboard', compact('totalHadir', 'totalTerlambat', 'totalAlpa', 'pelanggarans'));
     }
 
     // =================================================================
@@ -131,6 +143,10 @@ class BkController extends Controller
     public function cetakPdf(Request $request)
     {
         $tanggal = $request->input('tanggal', Carbon::today()->format('Y-m-d'));
+
+        // 1. TAMBAHAN: Mendefinisikan variabel $filter agar tidak error di Blade
+        $filter = $request->input('filter', 'harian');
+
         $hariIni = Carbon::parse($tanggal);
         $isMinggu = $hariIni->isSunday();
 
@@ -157,7 +173,8 @@ class BkController extends Controller
             ];
         }
 
-        $pdf = Pdf::loadView('bk.pdf_laporan', compact('laporan', 'tanggal'));
+        // 2. TAMBAHAN: Memasukkan variabel 'filter' ke dalam compact()
+        $pdf = Pdf::loadView('bk.pdf_presensi', compact('laporan', 'tanggal', 'filter'));
         return $pdf->stream('Laporan_Presensi_'.$tanggal.'.pdf');
     }
 

@@ -10,17 +10,40 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    // Fungsi untuk menampilkan Dashboard Admin
     public function index()
     {
-        $hariIni = date('Y-m-d');
+        // Ambil tanggal hari ini menggunakan Carbon
+        $hariIni = \Carbon\Carbon::today();
 
-        // Ngitung otomatis dari database
-        $totalSiswa = Siswa::count();
-        $hadirHariIni = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Hadir')->count();
-        $pelanggaranHariIni = DataPelanggaran::whereDate('tanggal_kejadian', $hariIni)->count();
+        // 1. MENGHITUNG KARTU STATISTIK
+        $totalSiswa = \App\Models\Siswa::count();
 
-        // Kirim datanya ke file view
-        return view('admin.dashboard', compact('totalSiswa', 'hadirHariIni', 'pelanggaranHariIni'));
+        // Misumsi role guru bernama 'guru'. Sesuaikan jika namanya beda di database-mu
+        $totalGuru = \App\Models\User::where('role', 'guru')->count();
+
+        $terlambatHariIni = \App\Models\Presensi::whereDate('tanggal', $hariIni)
+                                                ->where('status', 'Terlambat')->count();
+
+        // Menggunakan model DataPelanggaran seperti di BkController milikmu
+        $pelanggaranBaru = \App\Models\DataPelanggaran::whereDate('tanggal_kejadian', $hariIni)->count();
+
+        // 2. MENGAMBIL DATA UNTUK TABEL (Hanya 5 data terakhir)
+        $logPresensi = \App\Models\Presensi::with('siswa')
+                                          ->whereDate('tanggal', $hariIni)
+                                          ->latest('jam_masuk')
+                                          ->take(5)
+                                          ->get();
+
+        $logPelanggaran = \App\Models\DataPelanggaran::with(['siswa', 'jenisPelanggaran'])
+                                                     ->latest()
+                                                     ->take(5)
+                                                     ->get();
+
+        // 3. MELEMPAR DATA KE TAMPILAN
+        return view('admin.dashboard', compact(
+            'totalSiswa', 'totalGuru', 'terlambatHariIni', 'pelanggaranBaru', 'logPresensi', 'logPelanggaran'
+        ));
     }
 
     // Menampilkan halaman form pengaturan

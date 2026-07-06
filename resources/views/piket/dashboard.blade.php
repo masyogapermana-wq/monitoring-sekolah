@@ -8,47 +8,60 @@
         <!-- 1. HEADER HALAMAN -->
         <div class="mb-4">
             <h3 class="fw-bold text-white mb-2">Selamat Datang, Guru Piket 👋</h3>
-            <p class="text-secondary small">Pilih menu di bawah ini untuk mengelola presensi kedatangan dan pelanggaran tata tertib siswa hari ini.</p>
+            <p class="text-secondary small">Berikut adalah riwayat presensi kedatangan siswa pada hari ini.</p>
         </div>
 
-        <!-- 2. KOTAK MENU UTAMA (SCAN & MANUAL) -->
+        <!-- KARTU STATISTIK GURU PIKET -->
         <div class="row g-4 mb-4">
 
-            <!-- Menu Scan QR -->
-            <div class="col-md-6">
-                <div class="card h-100 text-center p-4"
-                    style="background-color: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease;">
-                    <div class="mb-3">
-                        <i class="fas fa-camera retro-icon" style="font-size: 3rem; color: #a5b1c2;"></i>
+            <!-- Kartu Total Masuk -->
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2); transition: transform 0.3s;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-white mb-1 opacity-75 fw-bold">Total Masuk Hari Ini</p>
+                            <h2 class="text-white fw-bold mb-0">{{ $totalMasuk ?? 0 }} <span class="fs-6 fw-normal">Siswa</span></h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-users text-white fs-3"></i>
+                        </div>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Scan QR Presensi</h4>
-                    <p class="text-muted small mb-4">Catat kehadiran otomatis menggunakan kamera web / barcode scanner.</p>
-                    <a href="{{ route('piket.scan') }}" class="btn text-white fw-bold py-2 px-4 rounded-pill w-75 mx-auto"
-                        style="background: linear-gradient(135deg, #00d2ff 0%, #00a1ff 100%); border: none; box-shadow: 0 4px 15px rgba(0, 161, 255, 0.3);">
-                        Buka Scanner
-                    </a>
                 </div>
             </div>
 
-            <!-- Menu Input Manual -->
-            <div class="col-md-6">
-                <div class="card h-100 text-center p-4"
-                    style="background-color: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.3s ease;">
-                    <div class="mb-3">
-                        <i class="fas fa-keyboard retro-icon" style="font-size: 3rem; color: #a5b1c2;"></i>
+            <!-- Kartu Tepat Waktu -->
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2); transition: transform 0.3s;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-white mb-1 opacity-75 fw-bold">Tepat Waktu</p>
+                            <h2 class="text-white fw-bold mb-0">{{ $totalTepatWaktu ?? 0 }} <span class="fs-6 fw-normal">Siswa</span></h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-check-circle text-white fs-3"></i>
+                        </div>
                     </div>
-                    <h4 class="fw-bold text-white mb-2">Presensi Manual</h4>
-                    <p class="text-muted small mb-4">Catat kehadiran siswa yang lupa membawa kartu dengan mengetik NIS.</p>
-                    <a href="{{ route('piket.manual') }}" class="btn text-white fw-bold py-2 px-4 rounded-pill w-75 mx-auto"
-                        style="background: linear-gradient(135deg, #2ed573 0%, #20bf6b 100%); border: none; box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3);">
-                        Input Manual
-                    </a>
+                </div>
+            </div>
+
+            <!-- Kartu Terlambat -->
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2); transition: transform 0.3s;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-white mb-1 opacity-75 fw-bold">Terlambat</p>
+                            <h2 class="text-white fw-bold mb-0">{{ $totalTerlambat ?? 0 }} <span class="fs-6 fw-normal">Siswa</span></h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-clock text-white fs-3"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- 3. KOTAK TABEL RIWAYAT PRESENSI -->
+        <!-- 2. KOTAK TABEL RIWAYAT PRESENSI -->
         <div class="card p-0"
             style="background-color: #1e293b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
 

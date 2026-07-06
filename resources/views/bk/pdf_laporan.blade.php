@@ -64,7 +64,7 @@
     <!-- INFO FILTER -->
     <div class="info-tanggal">
         Tanggal Cetak: {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }} <br>
-        Filter: {{ ucfirst($filter) }}
+        Filter: {{ ucfirst($filter ?? 'Semua') }}
     </div>
 
     <!-- TABEL DATA PELANGGARAN -->

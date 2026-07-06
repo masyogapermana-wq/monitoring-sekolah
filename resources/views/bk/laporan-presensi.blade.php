@@ -15,12 +15,11 @@
             </div>
             <div class="mt-3 mt-md-0">
                 <!-- Form untuk cetak PDF berdasarkan tanggal yang sedang difilter -->
-                <!-- Form untuk cetak PDF berdasarkan tanggal yang sedang difilter -->
                 <form action="{{ route('bk.cetak-pdf') }}" method="GET" target="_blank">
                     <!-- Mengirim parameter tanggal secara tersembunyi -->
                     <input type="hidden" name="tanggal" value="{{ $tanggalInput ?? request('tanggal') }}">
 
-                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" style="...">
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
                         <i class="fas fa-print me-2"></i> Cetak Laporan (PDF)
                     </button>
                 </form>
@@ -153,6 +152,33 @@
                 </table>
             </div>
         </div>
+
+        <!-- Tambahan CSS untuk Ikon Form Dark Mode -->
+        <style>
+            /* 1. Mengganti ikon kalender bawaan dengan gambar SVG kalender putih terang */
+            input[type="date"]::-webkit-calendar-picker-indicator {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") !important;
+                cursor: pointer;
+                opacity: 0.8; /* Sedikit transparan agar elegan */
+                transition: opacity 0.2s ease;
+            }
+
+            /* Efek saat ikon kalender disentuh mouse (hover) */
+            input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                opacity: 1; /* Menyala lebih terang penuh */
+            }
+
+            /* 2. Mengubah warna panah opsi (Dropdown Select) menjadi putih terang */
+            select.form-select {
+                /* Menggunakan SVG panah kustom dengan warna stroke #ffffff (putih) */
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+            }
+
+            /* 3. Memastikan kotak popup kalender (saat diklik) mengikuti tema gelap layar */
+            input[type="date"], select.form-select {
+                color-scheme: dark;
+            }
+        </style>
 
     </div>
 @endsection
