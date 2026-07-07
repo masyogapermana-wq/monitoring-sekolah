@@ -124,7 +124,7 @@
     <div class="sidebar d-flex flex-column py-4" id="sidebarMenu">
         <div class="text-center mb-4 px-3">
             <!-- INI BAGIAN YANG DIPERBAIKI: Tag HTML disatukan agar width 65px berfungsi -->
-            <img src="{{ asset('images/logo-smk.png.jpg') }}" alt="Logo SMK Pembangunan" class="bg-white rounded-circle p-1 mb-2 shadow-sm" style="width: 65px;">
+            <img src="{{ asset('images/logosekolah.jpg') }}" alt="Logo SMK Pembangunan" class="bg-white rounded-circle p-1 mb-2 shadow-sm" style="width: 65px;">
             <h5 class="fw-bold mb-0 text-white" style="letter-spacing: 0.5px;">SMK Pembangunan</h5>
 
             <!-- Label Panel dipisah menggunakan if mandiri -->
