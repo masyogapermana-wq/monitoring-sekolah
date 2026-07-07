@@ -152,7 +152,23 @@
     <div class="login-card">
         <!-- Bagian Kepala: Menggunakan Logo Asli Sekolah -->
         <div class="text-center mb-4">
-            <img src="{{ asset('images/logosekolah.jpg') }}" alt="Logo SMK Pembangunan" class="img-fluid bg-white rounded-circle p-1 shadow-sm" style="width: 75px; height: auto; margin-bottom: 1.2rem;">
+
+            @php
+                // Kita cek langsung ke jantung server Vercel
+                $pathGambar = public_path('images/logosekolah.jpg');
+                $gambarAda = file_exists($pathGambar);
+            @endphp
+
+            @if($gambarAda)
+                <img src="{{ asset('images/logosekolah.jpg') }}" alt="Logo SMK Pembangunan" class="img-fluid bg-white rounded-circle p-1 shadow-sm" style="width: 75px; height: auto; margin-bottom: 1.2rem;">
+            @else
+                <div class="alert alert-danger text-start p-2 mx-auto" style="font-size: 0.7rem; max-width: 90%;">
+                    <strong>🚨 INFO ERROR VERCEL:</strong><br>
+                    File logo tidak ditemukan secara fisik oleh server.<br>
+                    <span style="color: #ffcccc;">Path yang dicari Vercel:</span><br>
+                    <code>{{ $pathGambar }}</code>
+                </div>
+            @endif
 
             <h4 class="fw-bold text-white mb-1">SMK Pembangunan</h4>
             <p class="small mb-0"
