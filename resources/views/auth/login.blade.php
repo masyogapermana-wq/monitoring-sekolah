@@ -152,7 +152,7 @@
     <div class="login-card">
         <!-- Bagian Kepala: Menggunakan Logo Asli Sekolah -->
         <div class="text-center mb-4">
-            <img src="{{ asset('images/logo-smk.jpg') }}" alt="Logo SMK Pembangunan" class="img-fluid bg-white rounded-circle p-1 shadow-sm" style="width: 75px; height: auto; margin-bottom: 1.2rem;">
+            <img src="{{ asset('images/logosekolah.jpg') }}" alt="Logo SMK Pembangunan" class="img-fluid bg-white rounded-circle p-1 shadow-sm" style="width: 75px; height: auto; margin-bottom: 1.2rem;">
 
             <h4 class="fw-bold text-white mb-1">SMK Pembangunan</h4>
             <p class="small mb-0"
