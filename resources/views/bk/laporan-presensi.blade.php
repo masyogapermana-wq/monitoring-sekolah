@@ -14,10 +14,12 @@
                 <p class="text-secondary small mb-0">Pantau kehadiran dan filter data presensi siswa.</p>
             </div>
             <div class="mt-3 mt-md-0">
-                <!-- Form untuk cetak PDF berdasarkan tanggal yang sedang difilter -->
+                <!-- Form untuk cetak PDF berdasarkan filter yang sedang aktif -->
                 <form action="{{ route('bk.cetak-pdf') }}" method="GET" target="_blank">
-                    <!-- Mengirim parameter tanggal secara tersembunyi -->
+                    <!-- Mengirim parameter tanggal, filter, dan kelas yang sedang aktif -->
                     <input type="hidden" name="tanggal" value="{{ $tanggalInput ?? request('tanggal') }}">
+                    <input type="hidden" name="filter" value="{{ $filter }}">
+                    <input type="hidden" name="kelas" value="{{ $kelasPilihan }}">
 
                     <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
                         <i class="fas fa-print me-2"></i> Cetak Laporan (PDF)
@@ -52,6 +54,9 @@
                     <label class="form-label text-secondary small fw-bold">Pilih Tanggal</label>
                     <input type="date" name="tanggal" value="{{ $tanggalInput }}" class="form-control"
                         style="background-color: #0f172a; border: 1px solid #334155; color: white;">
+                    {{-- Catatan: untuk filter Mingguan & Bulanan, tanggal ini dipakai
+                         sebagai acuan (minggu/bulan yang mengandung tanggal ini),
+                         bukan tanggal tunggal --}}
                 </div>
 
                 <!-- Filter Pilih Kelas -->

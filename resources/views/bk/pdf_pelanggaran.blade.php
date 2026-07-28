@@ -30,7 +30,7 @@
         .text-center { text-align: center; }
 
         /* =========================================
-           4. CSS TANDA TANGAN (Dikembalikan dari kodemu)
+           4. CSS TANDA TANGAN
            ========================================= */
         .ttd-container { width: 250px; float: right; text-align: center; margin-top: 20px; }
         .nama-ttd { font-weight: bold; text-decoration: underline; margin-top: 60px; }
@@ -43,22 +43,29 @@
         <tr>
             <!-- Kolom Logo -->
             <td style="width: 15%; text-align: center;">
-                <!-- Logika Base64 Image (Dipertahankan agar anti-error di DomPDF) -->
+                {{-- Logika Base64 Image, anti-error di DomPDF --}}
                 @php
-                    $path = public_path('images/logo-smk.png.jpg');
-                    if(file_exists($path)) {
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $data = file_get_contents($path);
-                        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    $pathLogo = public_path('images/logosekolah.png');
+                    $base64Logo = null;
+                    $errorLogo = null;
+
+                    if (!file_exists($pathLogo)) {
+                        $errorLogo = "File tidak ditemukan: " . $pathLogo;
                     } else {
-                        $base64 = '';
+                        $dataLogo = file_get_contents($pathLogo);
+                        if ($dataLogo === false) {
+                            $errorLogo = "Gagal membaca file (cek permission).";
+                        } else {
+                            $mimeType = mime_content_type($pathLogo) ?: 'image/png';
+                            $base64Logo = 'data:' . $mimeType . ';base64,' . base64_encode($dataLogo);
+                        }
                     }
                 @endphp
 
-                @if($base64)
-                    <img src="{{ $base64 }}" alt="Logo SMK Pembangunan" style="width: 75px; height: auto;">
+                @if($base64Logo)
+                    <img src="{{ $base64Logo }}" alt="Logo SMK Pembangunan" style="width: 75px; height: auto;">
                 @else
-                    <span style="font-size: 10px; color: red;">File logo gagal dimuat</span>
+                    <span style="font-size: 9px; color: red;">{{ $errorLogo }}</span>
                 @endif
             </td>
 
@@ -81,7 +88,9 @@
 
     <div class="info-tanggal">
         Tanggal Cetak: {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }} <br>
-        Filter: {{ ucfirst($filter ?? 'Harian') }}
+        Filter: {{ ucfirst($filter ?? 'Harian') }} <br>
+        Periode: {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }}
+        s/d {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}
     </div>
 
     <!-- TABEL DATA -->
@@ -114,11 +123,11 @@
         </tbody>
     </table>
 
-    <!-- AREA TANDA TANGAN (Dipertahankan dari kodemu) -->
+    <!-- AREA TANDA TANGAN -->
     <div class="ttd-container">
         <p>Pacitan, {{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}<br>Guru Bimbingan Konseling (BK)</p>
-        <div class="nama-ttd">Nama Guru BK, S.Pd.</div>
-        <p style="margin-top: 2px;">NIP. 19801234 200501 1 001</p>
+        <div class="nama-ttd">Umi Kholifah, S.Pd.</div>
+        <p style="margin-top: 2px;">NIP.-</p>
     </div>
 
 </body>

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Laporan Presensi - SMK Pembangunan</title>
 
     <style>
-        /* 1. Pengaturan Font dan Kertas Dasar */
         body {
             font-family: 'Times New Roman', Times, serif;
             color: #000;
@@ -15,7 +15,6 @@
             padding: 0;
         }
 
-        /* 2. Memaksa Ukuran Kertas A4 saat Dicetak */
         @page {
             size: A4;
             margin: 15mm;
@@ -27,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* 3. Desain Kop Surat Resmi */
+        /* Kop Surat */
         .kop-surat {
             display: table;
             width: 100%;
@@ -71,11 +70,13 @@
             text-transform: uppercase;
         }
 
-        .kop-jurusan, .kop-npsn, .kop-alamat, .kop-kontak {
+        .kop-jurusan,
+        .kop-npsn,
+        .kop-alamat,
+        .kop-kontak {
             font-size: 12px;
         }
 
-        /* Garis Ganda Pembatas Kop Surat */
         .garis-kop {
             border: none;
             border-top: 3px solid #000;
@@ -84,7 +85,6 @@
             margin-bottom: 20px;
         }
 
-        /* 4. Bagian Judul dan Info Laporan */
         .judul-laporan {
             text-align: center;
             font-size: 18px;
@@ -99,15 +99,15 @@
             margin-bottom: 15px;
         }
 
-        /* 5. DESAIN TABEL AGAR RAPI BERGARIS */
         table {
             width: 100%;
-            border-collapse: collapse; /* Menyatukan garis tepi tabel */
+            border-collapse: collapse;
             margin-bottom: 30px;
         }
 
-        table th, table td {
-            border: 1px solid #000; /* Memberikan garis hitam pada tabel */
+        table th,
+        table td {
+            border: 1px solid #000;
             padding: 8px 10px;
             text-align: center;
             font-size: 13px;
@@ -115,8 +115,6 @@
 
         table th {
             background-color: #f2f2f2 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -125,7 +123,7 @@
             text-align: left;
         }
 
-        /* 6. Kolom Tanda Tangan */
+         /* 6. Kolom Tanda Tangan */
         .tanda-tangan {
             width: 100%;
             margin-top: 50px;
@@ -140,15 +138,16 @@
 
         .ttd-kanan p {
             margin: 0;
-            margin-bottom: 70px;
+            margin-bottom: 5px;
         }
-
+        .ttd-spasi {
+            margin-bottom: 70px !important;
+        }
         .ttd-nama {
             font-weight: bold;
             text-decoration: underline;
         }
 
-        /* 7. Pengaturan Khusus Print */
         @media print {
             .btn-cetak {
                 display: none;
@@ -156,48 +155,78 @@
         }
     </style>
 </head>
-<body>
 
+<body>
     <div class="cetak-container">
 
-        <!-- Tombol untuk memicu print -->
         <div style="text-align: right; margin-bottom: 20px;" class="btn-cetak">
-            <button onclick="window.print()" style="padding: 10px 20px; background-color: #174b71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                🖨️ Cetak Laporan Sekarang
+            <button onclick="window.print()"
+                style="padding: 10px 20px; background-color: #174b71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                Cetak Laporan Sekarang
             </button>
         </div>
 
-        <!-- KOP SURAT YAYASAN AL-FATTAH -->
+        <!-- KOP SURAT -->
         <div class="kop-surat">
             <div class="kop-logo">
-                <img src="{{ asset('images/logosekolah.jpg') }}" alt="File logo gagal dimuat" class="img-fluid" width="100">
+                @php
+                    /*
+                     * Sudah dites: file PNG-nya valid & base64-nya valid
+                     * (terbukti muncul normal di test.php).
+                     * Root cause sebelumnya BUKAN di sini, tapi karena
+                     * controller ternyata manggil view yang beda (pdf_presensi).
+                     * Untuk file ini (cetak-presensi.blade.php), logic-nya sama.
+                     */
+                    $base64Logo = null;
+                    $errorLogo = null;
+
+                    // GANTI kalau nama file PNG lo berbeda
+                    $pathLogo = public_path('images/logosekolah.png');
+
+                    if (!file_exists($pathLogo)) {
+                        $errorLogo = "File tidak ditemukan: " . $pathLogo;
+                    } else {
+                        $dataLogo = file_get_contents($pathLogo);
+                        if ($dataLogo === false) {
+                            $errorLogo = "Gagal membaca file (cek permission).";
+                        } else {
+                            $mimeType = mime_content_type($pathLogo) ?: 'image/png';
+                            $base64Logo = 'data:' . $mimeType . ';base64,' . base64_encode($dataLogo);
+                        }
+                    }
+                @endphp
+
+                @if($base64Logo)
+                    <img src="{{ $base64Logo }}" alt="Logo SMK Pembangunan" class="img-fluid" width="100">
+                @else
+                    <div style="border:1px dashed #999; padding:10px; font-size:9px; color:#c00;">
+                        {{ $errorLogo }}
+                    </div>
+                @endif
             </div>
             <div class="kop-teks">
                 <p class="kop-yayasan">YAYASAN PONDOK PESANTREN AL - FATTAH KIKIL ARJOSARI<br>KABUPATEN PACITAN</p>
                 <p class="kop-sekolah">SEKOLAH MENENGAH KEJURUAN PEMBANGUNAN</p>
-                <p class="kop-jurusan">1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak<br>4. Akuntansi dan Keuangan Lembaga</p>
+                <p class="kop-jurusan">1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak<br>4.
+                    Akuntansi dan Keuangan Lembaga</p>
                 <p class="kop-npsn">NPSN : 20510982</p>
                 <p class="kop-alamat">Jl. Nawangan Km. 01 Arjosari Pacitan. Telp./Fax (0357) 631008</p>
                 <p class="kop-kontak">
-                    Website : <span style="color: blue; text-decoration: underline;">http://smkpembangunanpacitan.sch.id</span>
+                    Website : <span
+                        style="color: blue; text-decoration: underline;">http://smkpembangunanpacitan.sch.id</span>
                     Email : smkpembangunan_pct@yahoo.com
                 </p>
             </div>
         </div>
 
-        <!-- Garis Ganda -->
         <hr class="garis-kop">
 
-        <!-- JUDUL LAPORAN PRESENSI -->
-        <div class="judul-laporan">
-            Laporan Rekapitulasi Presensi Kehadiran Siswa
-        </div>
+        <div class="judul-laporan">Laporan Rekapitulasi Presensi Kehadiran Siswa</div>
 
         <div class="info-tanggal">
             <strong>Tanggal Cetak:</strong> {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}
         </div>
 
-        <!-- TABEL DATA PRESENSI -->
         <table>
             <thead>
                 <tr>
@@ -210,9 +239,11 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- LOOPING DATA PRESENSI -->
-                <!-- Pastikan variabel $dataPresensi disesuaikan dengan yang kamu kirim dari Controller -->
-                @forelse($dataPresensi ?? [] as $index => $presensi)
+                {{-- PENTING: variabel ini WAJIB "$presensis", persis seperti yang
+                     dikirim controller cetakPresensi() lewat compact('presensis').
+                     Kalau ditulis $dataPresensi, tabel selalu kosong berapapun
+                     tanggal yang dipilih, karena variabel itu memang tidak pernah dikirim. --}}
+                @forelse($presensis ?? [] as $index => $presensi)
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ \Carbon\Carbon::parse($presensi->tanggal)->translatedFormat('d-M-Y') }}</td>
@@ -231,16 +262,15 @@
             </tbody>
         </table>
 
-        <!-- BAGIAN TANDA TANGAN -->
-        <div class="tanda-tangan">
+         <div class="tanda-tangan">
             <div class="ttd-kanan">
-                <p>Pacitan, {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}<br>Guru Bimbingan Konseling (BK)</p>
+                <p class="ttd-spasi">Pacitan, {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}<br>Guru Bimbingan Konseling (BK)</p>
                 <p class="ttd-nama">Nama Guru BK, S.Pd.</p>
                 <p>NIP. 19801234 200501 1 001</p>
             </div>
         </div>
 
     </div>
-
 </body>
+
 </html>

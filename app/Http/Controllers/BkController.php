@@ -48,7 +48,11 @@ class BkController extends Controller
     {
         $filter = $request->get('filter', 'harian');
         $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
-        $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
+
+        // FIX: bulan diambil dari tanggalInput yang dipilih user,
+        // bukan selalu fallback ke bulan hari ini.
+        $bulanInput = $request->get('bulan', Carbon::parse($tanggalInput)->format('Y-m'));
+
         $kelasPilihan = $request->get('kelas', 'semua');
         $daftarKelas = Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
 
@@ -93,7 +97,7 @@ class BkController extends Controller
     {
         $filter = $request->get('filter', 'harian');
         $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
-        $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
+        $bulanInput = $request->get('bulan', Carbon::parse($tanggalInput)->format('Y-m'));
         $kelasPilihan = $request->get('kelas', 'semua');
         $daftarKelas = Siswa::select('kelas')->distinct()->orderBy('kelas', 'asc')->pluck('kelas');
 
@@ -142,50 +146,84 @@ class BkController extends Controller
     // =================================================================
     public function cetakPdf(Request $request)
     {
-        $tanggal = $request->input('tanggal', Carbon::today()->format('Y-m-d'));
-
-        // 1. TAMBAHAN: Mendefinisikan variabel $filter agar tidak error di Blade
         $filter = $request->input('filter', 'harian');
+        $tanggalInput = $request->input('tanggal', Carbon::today()->toDateString());
+        $kelasPilihan = $request->input('kelas', 'semua');
 
-        $hariIni = Carbon::parse($tanggal);
-        $isMinggu = $hariIni->isSunday();
+        // Tentukan rentang tanggal sesuai filter, sama seperti di laporanPresensi()
+        if ($filter == 'harian') {
+            $startDate = Carbon::parse($tanggalInput)->startOfDay();
+            $endDate = Carbon::parse($tanggalInput)->endOfDay();
+        } elseif ($filter == 'mingguan') {
+            $startDate = Carbon::parse($tanggalInput)->startOfWeek();
+            $endDate = Carbon::parse($tanggalInput)->endOfWeek();
+        } elseif ($filter == 'bulanan') {
+            $startDate = Carbon::parse($tanggalInput)->startOfMonth();
+            $endDate = Carbon::parse($tanggalInput)->endOfMonth();
+        }
 
-        $siswas = Siswa::orderBy('kelas', 'asc')->orderBy('nama_siswa', 'asc')->get();
-        $presensis = Presensi::whereDate('tanggal', $tanggal)->get()->keyBy('siswa_id');
+        // Query siswa, filter kelas kalau dipilih spesifik
+        $querySiswa = Siswa::orderBy('kelas', 'asc')->orderBy('nama_siswa', 'asc');
+        if ($kelasPilihan != 'semua') {
+            $querySiswa->where('kelas', $kelasPilihan);
+        }
+        $siswas = $querySiswa->get();
+
+        // Ambil semua presensi dalam rentang tanggal, dikelompokkan per siswa
+        // (satu siswa bisa punya beberapa baris presensi kalau mingguan/bulanan)
+        $presensis = Presensi::whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()])
+            ->get()
+            ->groupBy('siswa_id');
 
         $laporan = [];
 
         foreach ($siswas as $siswa) {
-            if (isset($presensis[$siswa->id])) {
-                $status = $presensis[$siswa->id]->status ?? 'Hadir';
-                $jam_masuk = $presensis[$siswa->id]->jam_masuk;
-            } else {
-                $status = $isMinggu ? 'Libur' : 'Alpa';
-                $jam_masuk = '-';
-            }
+            $dataSiswa = $presensis->get($siswa->id);
 
-            $laporan[] = [
-                'nis' => $siswa->nis,
-                'nama_siswa' => $siswa->nama_siswa,
-                'kelas' => $siswa->kelas,
-                'jam_masuk' => $jam_masuk,
-                'status' => $status
-            ];
+            if ($dataSiswa && $dataSiswa->count() > 0) {
+                // Kalau harian, biasanya cuma ada 1 baris. Kalau mingguan/bulanan,
+                // tampilkan tiap tanggal sebagai baris terpisah.
+                foreach ($dataSiswa as $item) {
+                    $laporan[] = [
+                        'nis' => $siswa->nis,
+                        'nama_siswa' => $siswa->nama_siswa,
+                        'kelas' => $siswa->kelas,
+                        'tanggal' => $item->tanggal,
+                        'jam_masuk' => $item->jam_masuk ?? '-',
+                        'status' => $item->status ?? 'Hadir',
+                    ];
+                }
+            } else {
+                // Siswa sama sekali tidak absen di rentang ini -> Alpa
+                // (untuk mingguan/bulanan, cukup 1 baris ringkasan "Alpa")
+                $isMinggu = $filter == 'harian' && Carbon::parse($tanggalInput)->isSunday();
+                $laporan[] = [
+                    'nis' => $siswa->nis,
+                    'nama_siswa' => $siswa->nama_siswa,
+                    'kelas' => $siswa->kelas,
+                    'tanggal' => $tanggalInput,
+                    'jam_masuk' => '-',
+                    'status' => $isMinggu ? 'Libur' : 'Alpa',
+                ];
+            }
         }
 
-        // 2. TAMBAHAN: Memasukkan variabel 'filter' ke dalam compact()
-        $pdf = Pdf::loadView('bk.pdf_presensi', compact('laporan', 'tanggal', 'filter'));
-        return $pdf->stream('Laporan_Presensi_'.$tanggal.'.pdf');
+        $pdf = Pdf::loadView('bk.pdf-presensi', compact('laporan', 'tanggalInput', 'filter', 'startDate', 'endDate'));
+        return $pdf->stream('Laporan_Presensi_' . $tanggalInput . '.pdf');
     }
 
     // =================================================================
-    // 7. FUNGSI CETAK PDF LAPORAN PELANGGARAN (YANG SEMPAT HILANG)
+    // 7. FUNGSI CETAK PDF LAPORAN PELANGGARAN (Sudah support bulan spesifik)
     // =================================================================
     public function cetakPelanggaranPdf(Request $request)
     {
         $filter = $request->get('filter', 'harian');
         $tanggalInput = $request->get('tanggal', Carbon::today()->toDateString());
-        $bulanInput = $request->get('bulan', Carbon::today()->format('Y-m'));
+
+        // FIX: bulan diambil dari tanggalInput yang dipilih user,
+        // bukan selalu fallback ke bulan hari ini.
+        $bulanInput = $request->get('bulan', Carbon::parse($tanggalInput)->format('Y-m'));
+
         $kelasPilihan = $request->get('kelas', 'semua');
 
         $query = DataPelanggaran::with(['siswa', 'jenisPelanggaran'])->latest();
@@ -211,7 +249,7 @@ class BkController extends Controller
 
         $pelanggarans = $query->get();
 
-        $pdf = Pdf::loadView('bk.pdf_pelanggaran', compact('pelanggarans', 'tanggalInput', 'filter'));
+        $pdf = Pdf::loadView('bk.pdf_pelanggaran', compact('pelanggarans', 'tanggalInput', 'filter', 'startDate', 'endDate'));
         return $pdf->stream('Laporan_Pelanggaran_'.$tanggalInput.'.pdf');
     }
 }

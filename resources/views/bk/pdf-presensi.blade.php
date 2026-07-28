@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Laporan Pelanggaran - SMK Pembangunan</title>
+    <title>Laporan Presensi</title>
 
     <style>
-        /* 1. Pengaturan Font dan Kertas Dasar */
         body {
             font-family: 'Times New Roman', Times, serif;
             color: #000;
@@ -15,7 +15,6 @@
             padding: 0;
         }
 
-        /* 2. Memaksa Ukuran Kertas A4 saat Dicetak */
         @page {
             size: A4;
             margin: 15mm;
@@ -27,7 +26,7 @@
             margin: 0 auto;
         }
 
-        /* 3. Desain Kop Surat Resmi */
+        /* Kop Surat */
         .kop-surat {
             display: table;
             width: 100%;
@@ -71,11 +70,13 @@
             text-transform: uppercase;
         }
 
-        .kop-jurusan, .kop-npsn, .kop-alamat, .kop-kontak {
+        .kop-jurusan,
+        .kop-npsn,
+        .kop-alamat,
+        .kop-kontak {
             font-size: 12px;
         }
 
-        /* Garis Ganda Pembatas Kop Surat */
         .garis-kop {
             border: none;
             border-top: 3px solid #000;
@@ -84,7 +85,6 @@
             margin-bottom: 20px;
         }
 
-        /* 4. Bagian Judul dan Info Laporan */
         .judul-laporan {
             text-align: center;
             font-size: 18px;
@@ -99,14 +99,14 @@
             margin-bottom: 15px;
         }
 
-        /* 5. Desain Tabel Premium */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 30px;
         }
 
-        table th, table td {
+        table th,
+        table td {
             border: 1px solid #000;
             padding: 8px 10px;
             text-align: center;
@@ -115,8 +115,6 @@
 
         table th {
             background-color: #f2f2f2 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -125,7 +123,7 @@
             text-align: left;
         }
 
-        /* 6. Kolom Tanda Tangan */
+         /* 6. Kolom Tanda Tangan */
         .tanda-tangan {
             width: 100%;
             margin-top: 50px;
@@ -145,37 +143,59 @@
         .ttd-spasi {
             margin-bottom: 70px !important;
         }
+
         .ttd-nama {
             font-weight: bold;
             text-decoration: underline;
         }
-
-        /* 7. Pengaturan Khusus Print */
-        @media print {
-            .btn-cetak {
-                display: none;
-            }
-        }
     </style>
 </head>
-<body>
 
+<body>
     <div class="cetak-container">
 
-        <div style="text-align: right; margin-bottom: 20px;" class="btn-cetak">
-            <button onclick="window.print()" style="padding: 10px 20px; background-color: #174b71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                🖨️ Cetak Laporan Sekarang
-            </button>
-        </div>
-
+        <!-- KOP SURAT -->
         <div class="kop-surat">
             <div class="kop-logo">
-                <img src="/images/logosekolah.jpg" alt="Logo SMK Pembangunan">
+                @php
+                    /*
+                     * Sudah dites: file PNG-nya valid, base64 juga valid
+                     * (terbukti muncul di test.php).
+                     * Jadi di sini kita pakai cara yang sama persis,
+                     * tinggal disesuaikan nama file jadi .png
+                     */
+                    $base64Logo = null;
+                    $errorLogo = null;
+
+                    // GANTI ke nama file PNG yang baru kalau beda
+                    $pathLogo = public_path('images/logosekolah.png');
+
+                    if (!file_exists($pathLogo)) {
+                        $errorLogo = "File tidak ditemukan: " . $pathLogo;
+                    } else {
+                        $dataLogo = file_get_contents($pathLogo);
+                        if ($dataLogo === false) {
+                            $errorLogo = "Gagal membaca file (cek permission).";
+                        } else {
+                            $mimeType = mime_content_type($pathLogo) ?: 'image/png';
+                            $base64Logo = 'data:' . $mimeType . ';base64,' . base64_encode($dataLogo);
+                        }
+                    }
+                @endphp
+
+                @if($base64Logo)
+                    <img src="{{ $base64Logo }}" alt="Logo Sekolah" width="100">
+                @else
+                    <div style="border:1px dashed #999; padding:10px; font-size:9px; color:#c00;">
+                        {{ $errorLogo }}
+                    </div>
+                @endif
             </div>
             <div class="kop-teks">
                 <p class="kop-yayasan">YAYASAN PONDOK PESANTREN AL - FATTAH KIKIL ARJOSARI<br>KABUPATEN PACITAN</p>
                 <p class="kop-sekolah">SEKOLAH MENENGAH KEJURUAN PEMBANGUNAN</p>
-                <p class="kop-jurusan">1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak<br>4. Akuntansi dan Keuangan Lembaga</p>
+                <p class="kop-jurusan">1. Tata Busana 2. Teknik Komputer & Jaringan 3. Rekayasa Perangkat Lunak<br>4.
+                    Akuntansi dan Keuangan Lembaga</p>
                 <p class="kop-npsn">NPSN : 20510982</p>
                 <p class="kop-alamat">Jl. Nawangan Km. 01 Arjosari Pacitan. Telp./Fax (0357) 631008</p>
                 <p class="kop-kontak">
@@ -187,40 +207,42 @@
 
         <hr class="garis-kop">
 
-        <div class="judul-laporan">
-            Laporan Rekapitulasi Pelanggaran Siswa
-        </div>
+        <div class="judul-laporan">Laporan Rekapitulasi Presensi Kehadiran Siswa</div>
 
         <div class="info-tanggal">
-            <strong>Tanggal Cetak:</strong> {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}
+            <strong>Tanggal Cetak:</strong> {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}<br>
+            <strong>Filter:</strong> {{ ucfirst($filter) }}<br>
+            <strong>Periode:</strong> {{ \Carbon\Carbon::parse($startDate)->locale('id')->translatedFormat('d F Y') }}
+            s/d {{ \Carbon\Carbon::parse($endDate)->locale('id')->translatedFormat('d F Y') }}
         </div>
 
         <table>
             <thead>
                 <tr>
                     <th style="width: 5%;">No</th>
-                    <th style="width: 15%;">Tanggal</th>
                     <th style="width: 10%;">NIS</th>
                     <th style="width: 25%;">Nama Siswa</th>
-                    <th style="width: 35%;">Jenis Pelanggaran</th>
-                    <th style="width: 10%;">Poin</th>
+                    <th style="width: 12%;">Kelas</th>
+                    <th style="width: 13%;">Tanggal</th>
+                    <th style="width: 15%;">Jam Masuk</th>
+                    <th style="width: 20%;">Status</th>
                 </tr>
             </thead>
             <tbody>
-                {{-- LOOPING DATA DINAMIS ASLI (100% BEBAS MALFORMED ERROR) --}}
-                @forelse($dataPelanggaran as $index => $pelanggaran)
+                @forelse($laporan ?? [] as $index => $item)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>{{ \Carbon\Carbon::parse($pelanggaran->tanggal_kejadian)->translatedFormat('d F Y') }}</td>
-                        <td>{{ $pelanggaran->siswa->nis ?? '-' }}</td>
-                        <td class="rata-kiri">{{ $pelanggaran->siswa->nama_siswa ?? '-' }}</td>
-                        <td class="rata-kiri">{{ $pelanggaran->jenisPelanggaran->nama_pelanggaran ?? $pelanggaran->keterangan }}</td>
-                        <td>{{ $pelanggaran->jenisPelanggaran->poin ?? $pelanggaran->poin }}</td>
+                        <td>{{ $item['nis'] ?? '-' }}</td>
+                        <td class="rata-kiri">{{ $item['nama_siswa'] ?? '-' }}</td>
+                        <td>{{ $item['kelas'] ?? '-' }}</td>
+                        <td>{{ \Carbon\Carbon::parse($item['tanggal'])->translatedFormat('d-M-Y') }}</td>
+                        <td>{{ $item['jam_masuk'] ?? '-' }}</td>
+                        <td>{{ $item['status'] ?? '-' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #777; padding: 20px;">
-                            Tidak ada data pelanggaran siswa yang ditemukan.
+                        <td colspan="7" style="text-align: center; color: #777; padding: 20px;">
+                            Tidak ada data presensi yang ditemukan.
                         </td>
                     </tr>
                 @endforelse
@@ -229,13 +251,14 @@
 
         <div class="tanda-tangan">
             <div class="ttd-kanan">
-                <p class="ttd-spasi">Pacitan, {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}<br>Guru Bimbingan Konseling (BK)</p>
-                <p class="ttd-nama">Umi Kholifah, S.Pd.</p>
-                <p>NIP. 19801234 200501 1 001</p>
+                <p class="ttd-spasi">Pacitan, {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}<br>Guru Bimbingan
+                    Konseling (BK)</p>
+                <p class="ttd-nama">Umi Kholifah, S.Pd</p>
+                <p>NIP.-</p>
             </div>
         </div>
 
     </div>
-
 </body>
+
 </html>
