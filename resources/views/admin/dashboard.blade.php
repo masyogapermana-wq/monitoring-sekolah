@@ -162,7 +162,6 @@
                                     <tr>
                                         <th class="ps-4 py-3">Siswa</th>
                                         <th class="py-3">Jenis Pelanggaran</th>
-                                        <th class="py-3">Poin</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -173,13 +172,11 @@
                                                     class="text-secondary">{{ $kasus->siswa->kelas ?? '-' }}</small></td>
                                             <td class="py-3 text-truncate" style="max-width: 150px;">
                                                 {{ $kasus->jenisPelanggaran->nama_pelanggaran ?? '-' }}</td>
-                                            <td class="py-3"><span
-                                                    class="badge bg-danger rounded-pill px-3">+{{ $kasus->jenisPelanggaran->poin ?? 0 }}</span>
-                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="text-center py-4 text-secondary">Tidak ada pelanggaran
+                                            <!-- Mengubah colspan menjadi 2 karena sisa 2 kolom -->
+                                            <td colspan="2" class="text-center py-4 text-secondary">Tidak ada pelanggaran
                                                 tercatat.</td>
                                         </tr>
                                     @endforelse

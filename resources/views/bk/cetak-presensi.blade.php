@@ -170,7 +170,7 @@
         <!-- KOP SURAT YAYASAN AL-FATTAH -->
         <div class="kop-surat">
             <div class="kop-logo">
-                <img src="/images/logo-smk.png.jpg" alt="Logo SMK Pembangunan">
+                <img src="{{ asset('images/logosekolah.jpg') }}" alt="File logo gagal dimuat" class="img-fluid" width="100">
             </div>
             <div class="kop-teks">
                 <p class="kop-yayasan">YAYASAN PONDOK PESANTREN AL - FATTAH KIKIL ARJOSARI<br>KABUPATEN PACITAN</p>

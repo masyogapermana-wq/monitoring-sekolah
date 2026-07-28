@@ -168,7 +168,7 @@
 
         <div class="kop-surat">
             <div class="kop-logo">
-                <img src="/images/logo-smk.png.jpg" alt="Logo SMK Pembangunan">
+                <img src="/images/logosekolah.jpg" alt="Logo SMK Pembangunan">
             </div>
             <div class="kop-teks">
                 <p class="kop-yayasan">YAYASAN PONDOK PESANTREN AL - FATTAH KIKIL ARJOSARI<br>KABUPATEN PACITAN</p>
