@@ -5,10 +5,19 @@
 @section('content')
 <div class="container-fluid">
 
-    <!-- HEADER -->
-    <div class="mb-4">
-        <h3 class="fw-bold text-white mb-2">Dashboard Guru BK 👩‍🏫</h3>
-        <p class="text-secondary small">Pantau evaluasi presensi dan pelanggaran tata tertib siswa hari ini.</p>
+    <!-- HEADER: HANYA ADA TOMBOL INPUT SANKSI -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold text-white mb-2">Dashboard Guru BK 👩‍🏫</h3>
+            <p class="text-secondary small mb-0">Pantau evaluasi presensi dan pelanggaran tata tertib siswa hari ini.</p>
+        </div>
+
+        <!-- Tombol Aksi BK (Tombol Cetak Laporan Telah Dihapus) -->
+        <div class="d-flex gap-2">
+            <a href="{{ route('bk.input-pelanggaran') }}" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm">
+                <i class="fas fa-plus-circle me-1"></i> Input Sanksi
+            </a>
+        </div>
     </div>
 
     <!-- KARTU STATISTIK (Hadir, Terlambat, & Alpa) -->
@@ -61,7 +70,7 @@
 
     </div>
 
-    <!-- BAGIAN BAWAH: Tabel Riwayat & Grafik -->
+    <!-- BAGIAN TENGAH: Tabel Riwayat & Grafik -->
     <div class="row g-4">
 
         <!-- Kolom Tabel Pelanggaran -->
@@ -136,23 +145,18 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Menampung data dari Controller ke dalam variabel JavaScript
         const dataHadir = {{ $totalHadir ?? 0 }};
         const dataTerlambat = {{ $totalTerlambat ?? 0 }};
-        const dataAlpa = {{ $totalAlpa ?? 0 }}; // Variabel baru untuk Alpa
+        const dataAlpa = {{ $totalAlpa ?? 0 }};
 
         const ctx = document.getElementById('kehadiranChart').getContext('2d');
 
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                // 2. Menambahkan nama label 'Alpa' di urutan ketiga
                 labels: ['Hadir', 'Terlambat', 'Alpa'],
                 datasets: [{
-                    // 3. Memasukkan angka dari variabel dataAlpa
                     data: [dataHadir, dataTerlambat, dataAlpa],
-
-                    // 4. Menambahkan warna merah (#ff4757) untuk irisan Alpa
                     backgroundColor: ['#2ed573', '#ffa502', '#ff4757'],
                     borderWidth: 0,
                     hoverOffset: 5

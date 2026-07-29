@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\DataPelanggaran;
 use App\Models\Presensi;
 use App\Models\Siswa;
+// TAMBAHAN MODEL BARU UNTUK FITUR INPUT PELANGGARAN BK
+use App\Models\JenisPelanggaran;
+use App\Models\SanksiEdukatif;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 // Tambahan Library untuk PDF
@@ -251,5 +255,44 @@ class BkController extends Controller
 
         $pdf = Pdf::loadView('bk.pdf_pelanggaran', compact('pelanggarans', 'tanggalInput', 'filter', 'startDate', 'endDate'));
         return $pdf->stream('Laporan_Pelanggaran_'.$tanggalInput.'.pdf');
+    }
+
+    // =================================================================
+    // 8. FUNGSI INPUT PELANGGARAN & SANKSI (TAMBAHAN BARU KHUSUS BK)
+    // =================================================================
+    public function inputPelanggaran()
+    {
+        $siswas = Siswa::orderBy('nama_siswa', 'asc')->get();
+        $jenisPelanggaran = JenisPelanggaran::orderBy('nama_pelanggaran', 'asc')->get();
+        $sanksiEdukatifs = SanksiEdukatif::orderBy('nama_sanksi', 'asc')->get();
+
+        // Mengarah ke folder view milik bk
+        return view('bk.input-pelanggaran', compact('siswas', 'jenisPelanggaran', 'sanksiEdukatifs'));
+    }
+
+    public function storePelanggaran(Request $request)
+    {
+        $request->validate([
+            'nis' => 'required',
+            'jenis_pelanggaran_id' => 'required',
+            'sanksi' => 'required',
+            'tanggal' => 'required',
+        ]);
+
+        $siswa = Siswa::where('nis', $request->nis)->first();
+
+        if (! $siswa) {
+            return back()->withErrors(['Siswa dengan NIS tersebut tidak ditemukan!'])->withInput();
+        }
+
+        DataPelanggaran::create([
+            'siswa_id' => $siswa->id,
+            'jenis_pelanggaran_id' => $request->jenis_pelanggaran_id,
+            'sanksi' => $request->sanksi,
+            'tanggal_kejadian' => $request->tanggal,
+            'user_id' => auth()->id(), // Otomatis mencatat ID Guru BK yang sedang login
+        ]);
+
+        return back()->with('success', 'Data pelanggaran & sanksi edukatif berhasil dicatat oleh BK!');
     }
 }

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SanksiEdukatifController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +98,12 @@ Route::middleware(['auth'])->group(function () {
         // Cetak PDF
         Route::get('/bk/cetak-pdf', [App\Http\Controllers\BkController::class, 'cetakPdf'])->name('bk.cetak-pdf');
         Route::get('/bk/cetak-pelanggaran-pdf', [App\Http\Controllers\BkController::class, 'cetakPelanggaranPdf'])->name('bk.cetak-pelanggaran-pdf');
+
+        // Route untuk menampilkan halaman form input pelanggaran BK
+        Route::get('/bk/input-pelanggaran', [App\Http\Controllers\BkController::class, 'inputPelanggaran'])->name('bk.input-pelanggaran');
+
+        // Route untuk memproses penyimpanan data dari form tersebut
+        Route::post('/bk/store-pelanggaran', [App\Http\Controllers\BkController::class, 'storePelanggaran'])->name('bk.store-pelanggaran');
     });
 
     // ==========================================
