@@ -35,10 +35,31 @@ class PiketController extends Controller
             });
         }
 
-        // Jalankan query-nya
+        // Jalankan query-nya untuk tabel
         $presensis = $query->get();
 
-        return view('piket.dashboard', compact('presensis', 'daftarKelas', 'kelasPilihan'));
+        // =========================================================================
+        // TAMBAHAN BARU: Menghitung angka untuk kartu statistik Guru Piket
+        // =========================================================================
+        $totalMasuk = \App\Models\Presensi::whereDate('created_at', $hariIni)->count();
+
+        // Menghitung yang tepat waktu / hadir (sesuaikan dengan string status di database-mu)
+        $totalTepatWaktu = \App\Models\Presensi::whereDate('created_at', $hariIni)
+            ->whereIn('status', ['Hadir', 'Tepat Waktu'])
+            ->count();
+
+        $totalTerlambat = \App\Models\Presensi::whereDate('created_at', $hariIni)
+            ->where('status', 'Terlambat')
+            ->count();
+
+        return view('piket.dashboard', compact(
+            'presensis',
+            'daftarKelas',
+            'kelasPilihan',
+            'totalMasuk',
+            'totalTepatWaktu',
+            'totalTerlambat'
+        ));
     }
 
     // 2. Halaman Scanner Kamera QR
@@ -50,7 +71,9 @@ class PiketController extends Controller
     // 3. Halaman Presensi Manual
     public function manual()
     {
-        return view('piket.manual');
+        // Mengambil data siswa untuk dropdown form manual
+        $siswas = Siswa::orderBy('nama_siswa', 'asc')->get();
+        return view('piket.manual', compact('siswas'));
     }
 
     // 4. Proses Menyimpan Absen (Dipakai barengan oleh Scanner & Input Manual)
@@ -65,10 +88,13 @@ class PiketController extends Controller
             $siswa = Siswa::where('nis', $request->nis)->first();
 
             if (! $siswa) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Siswa dengan NIS tersebut tidak ditemukan!',
-                ]);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Siswa dengan NIS tersebut tidak ditemukan!',
+                    ]);
+                }
+                return back()->with('error', 'Siswa dengan NIS tersebut tidak ditemukan!');
             }
 
             $hariIni = Carbon::today()->toDateString();
@@ -80,43 +106,83 @@ class PiketController extends Controller
                 ->first();
 
             if ($sudahAbsen) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Siswa ini sudah melakukan presensi hari ini!',
-                ]);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Siswa ini sudah melakukan presensi hari ini!',
+                    ]);
+                }
+                return back()->with('error', 'Siswa ini sudah melakukan presensi hari ini!');
             }
 
+            // Menentukan status kehadiran dari form manual atau default Hadir
             $statusKehadiran = $request->status ?? 'Hadir';
 
+            // MENGAMBIL VARIABEL WAKTU DARI DATABASE
             $pengaturanSistem = Pengaturan::first();
-            $batasJamMasuk = $pengaturanSistem ? $pengaturanSistem->jam_masuk : '07:30:00';
+            $mulaiHadir = $pengaturanSistem->mulai_hadir ?? '06:00:00';
+            $batasHadir = $pengaturanSistem->batas_hadir ?? '07:30:00';
+            $batasTerlambat = $pengaturanSistem->batas_terlambat ?? '08:00:00';
+            $batasAlpa = $pengaturanSistem->batas_alpa ?? '15:00:00';
 
+            // LOGIKA WAKTU HANYA BERJALAN JIKA STATUS AWAL ADALAH 'Hadir' (Misal dari Scanner QR)
             if ($statusKehadiran == 'Hadir') {
-                if ($jamSekarang > $batasJamMasuk) {
+
+                // Cek apakah di luar jam operasional
+                if ($jamSekarang < $mulaiHadir || $jamSekarang > $batasAlpa) {
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Sistem Presensi Ditutup! Waktu absensi pukul ' . substr($mulaiHadir,0,5) . ' s/d ' . substr($batasAlpa,0,5),
+                        ]);
+                    }
+                    return back()->with('error', 'Sistem Presensi Ditutup! Waktu absensi pukul ' . substr($mulaiHadir,0,5) . ' s/d ' . substr($batasAlpa,0,5));
+                }
+
+                // Cek status berdasarkan jam
+                if ($jamSekarang >= $mulaiHadir && $jamSekarang <= $batasHadir) {
+                    $statusKehadiran = 'Hadir';
+                } elseif ($jamSekarang > $batasHadir && $jamSekarang <= $batasTerlambat) {
                     $statusKehadiran = 'Terlambat';
+                } else {
+                    $statusKehadiran = 'Alpha'; // Memakai ejaan Alpha agar tidak ditolak database
                 }
             }
 
-            // Simpan data ke tabel presensi (Kolom DB lu namanya 'status')
+            // Mencegah error NULL: Selalu kirimkan jam sekarang meskipun statusnya Sakit/Izin/Alpha
+            $jamMasukSimpan = $jamSekarang;
+            $keterangan = $request->keterangan ?? null;
+
+            // Simpan data ke tabel presensi
             Presensi::create([
                 'siswa_id' => $siswa->id,
                 'tanggal' => $hariIni,
-                'jam_masuk' => $jamSekarang,
+                'jam_masuk' => $jamMasukSimpan,
                 'status' => $statusKehadiran,
+                'keterangan' => $keterangan
             ]);
 
-            return response()->json([
-                'status' => 'success',
-                'nama' => $siswa->nama_siswa,
-                'jam' => Carbon::now()->format('H:i'),
-                'status_kehadiran' => $statusKehadiran,
-            ]);
+            // Respons untuk Scanner QR
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'nama' => $siswa->nama_siswa,
+                    'jam' => Carbon::now()->format('H:i'),
+                    'status_kehadiran' => $statusKehadiran,
+                ]);
+            }
+
+            // Respons untuk Form Manual
+            return back()->with('success', 'Data presensi manual berhasil disimpan!');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ERROR DATABASE: '.$e->getMessage(),
-            ]);
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+            }
+            return back()->with('error', $e->getMessage());
         }
     }
 

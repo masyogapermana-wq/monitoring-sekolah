@@ -202,5 +202,15 @@
         .card:hover {
             transform: translateY(-5px);
         }
+
+        /* Kita menghapus kodingan min-height agar tombol Simpan kembali naik,
+           lalu menggunakan trik overflow ini agar dropdown tetap aman jika panjang */
+        .modal-body {
+            overflow: visible !important;
+        }
+
+        .modal {
+            overflow-y: visible !important;
+        }
     </style>
 @endsection

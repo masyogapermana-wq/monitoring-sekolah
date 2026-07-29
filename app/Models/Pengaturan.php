@@ -9,6 +9,13 @@ class Pengaturan extends Model
 {
     use HasFactory;
 
-    // Mengizinkan semua kolom untuk diisi (Mass Assignment)
-    protected $guarded = [];
+    // Pastikan keempat kolom baru ini dimasukkan ke dalam array $fillable
+    // (Jika ada kolom lama seperti 'jam_masuk' biarkan saja, cukup tambahkan yang baru)
+    protected $fillable = [
+        'jam_masuk', // Kolom lama lu
+        'mulai_hadir',
+        'batas_hadir',
+        'batas_terlambat',
+        'batas_alpa'
+    ];
 }

@@ -36,6 +36,15 @@ class AdminController extends Controller
             ->distinct('siswa_id')
             ->count('siswa_id');
 
+        // ---------------------------------------------------------------------
+        // TAMBAHAN BARU: MENGHITUNG DATA UNTUK GRAFIK PIE CHART HARI INI
+        // ---------------------------------------------------------------------
+        $jmlHadir = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Hadir')->count();
+        $jmlTerlambat = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Terlambat')->count();
+        $jmlSakit = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Sakit')->count();
+        $jmlIzin = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Izin')->count();
+        $jmlAlpha = Presensi::whereDate('tanggal', $hariIni)->where('status', 'Alpha')->count();
+
         // 2. MENGAMBIL DATA UNTUK TABEL (Hanya 5 data terakhir)
         $logPresensi = Presensi::with('siswa')
             ->whereDate('tanggal', $hariIni)
@@ -51,8 +60,10 @@ class AdminController extends Controller
             ->get();
 
         // 3. MELEMPAR DATA KE TAMPILAN
+        // Variabel untuk chart sudah ditambahkan ke dalam compact
         return view('admin.dashboard', compact(
-            'totalSiswa', 'totalGuru', 'terlambatHariIni', 'pelanggaranBaru', 'logPresensi', 'logPelanggaran'
+            'totalSiswa', 'totalGuru', 'terlambatHariIni', 'pelanggaranBaru', 'logPresensi', 'logPelanggaran',
+            'jmlHadir', 'jmlTerlambat', 'jmlSakit', 'jmlIzin', 'jmlAlpha'
         ));
     }
 
@@ -76,18 +87,25 @@ class AdminController extends Controller
     // Memproses data jam baru yang dikirim dari form
     public function updatePengaturan(Request $request)
     {
-        // Memastikan kolom jam masuk tidak dibiarkan kosong
+        // Validasi input form
         $request->validate([
-            'jam_masuk' => 'required',
+            'mulai_hadir' => 'required',
+            'batas_hadir' => 'required',
+            'batas_terlambat' => 'required',
+            'batas_alpha' => 'required',
         ]);
 
-        // Memperbarui data jam di database
-        $pengaturan = Pengaturan::first();
+        // Ambil data pengaturan pertama (karena biasanya tabel setting hanya punya 1 baris)
+        $pengaturan = \App\Models\Pengaturan::first();
+
+        // Update data ke database
         $pengaturan->update([
-            'jam_masuk' => $request->jam_masuk,
+            'mulai_hadir' => $request->mulai_hadir,
+            'batas_hadir' => $request->batas_hadir,
+            'batas_terlambat' => $request->batas_terlambat,
+            'batas_alpha' => $request->batas_alpha,
         ]);
 
-        // Mengembalikan ke halaman sebelumnya dengan pesan sukses
-        return back()->with('success', 'Batas jam masuk berhasil diperbarui menjadi '.$request->jam_masuk);
+        return back()->with('success', 'Pengaturan jam presensi berhasil diperbarui!');
     }
 }
