@@ -38,7 +38,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/siswa/cetak-semua-qr', [App\Http\Controllers\SiswaController::class, 'cetakSemuaQr'])->name('siswa.cetak-semua');
         Route::get('/admin/siswa/{id}/cetak-qr', [App\Http\Controllers\SiswaController::class, 'cetakQr'])->name('siswa.cetak-qr');
 
-        // Pengaturan Jam Masuk
+        // Pengaturan Jam Masuk (Fitur Jam Fleksibel)
         Route::get('/admin/pengaturan', [\App\Http\Controllers\AdminController::class, 'pengaturan'])->name('admin.pengaturan');
         Route::put('/admin/pengaturan/update', [\App\Http\Controllers\AdminController::class, 'updatePengaturan'])->name('pengaturan.update');
 

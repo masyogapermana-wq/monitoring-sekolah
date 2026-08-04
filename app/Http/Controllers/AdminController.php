@@ -84,28 +84,30 @@ class AdminController extends Controller
         return view('admin.pengaturan', compact('pengaturan'));
     }
 
-    // Memproses data jam baru yang dikirim dari form
-    public function updatePengaturan(Request $request)
+    // Fungsi untuk memproses data dari tombol "Simpan Peraturan"
+    public function updatePengaturan(\Illuminate\Http\Request $request)
     {
-        // Validasi input form
+        // 1. Memastikan tidak ada form jam yang dikosongkan
         $request->validate([
             'mulai_hadir' => 'required',
             'batas_hadir' => 'required',
             'batas_terlambat' => 'required',
-            'batas_alpha' => 'required',
+            'batas_alpa' => 'required',
         ]);
 
-        // Ambil data pengaturan pertama (karena biasanya tabel setting hanya punya 1 baris)
+        // 2. Cek apakah di database sudah ada data pengaturan sebelumnya
         $pengaturan = \App\Models\Pengaturan::first();
 
-        // Update data ke database
-        $pengaturan->update([
-            'mulai_hadir' => $request->mulai_hadir,
-            'batas_hadir' => $request->batas_hadir,
-            'batas_terlambat' => $request->batas_terlambat,
-            'batas_alpha' => $request->batas_alpha,
-        ]);
+        // 3. Logika penyimpanan fleksibel
+        if ($pengaturan) {
+            // Jika sudah ada data, cukup update (perbarui) nilainya
+            $pengaturan->update($request->all());
+        } else {
+            // Jika database masih kosong total, buat data baru
+            \App\Models\Pengaturan::create($request->all());
+        }
 
-        return back()->with('success', 'Pengaturan jam presensi berhasil diperbarui!');
+        // 4. Kembalikan ke halaman pengaturan dengan memunculkan notifikasi sukses
+        return back()->with('success', 'Mantap! Pengaturan jam kehadiran berhasil diperbarui secara fleksibel.');
     }
 }

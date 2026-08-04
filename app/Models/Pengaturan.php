@@ -9,10 +9,8 @@ class Pengaturan extends Model
 {
     use HasFactory;
 
-    // Pastikan keempat kolom baru ini dimasukkan ke dalam array $fillable
-    // (Jika ada kolom lama seperti 'jam_masuk' biarkan saja, cukup tambahkan yang baru)
+    // Tambahkan baris ini agar sistem mengizinkan jam disimpan
     protected $fillable = [
-        'jam_masuk', // Kolom lama lu
         'mulai_hadir',
         'batas_hadir',
         'batas_terlambat',
