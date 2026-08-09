@@ -100,6 +100,35 @@ class PiketController extends Controller
             $hariIni = Carbon::today()->toDateString();
             $jamSekarang = Carbon::now()->toTimeString();
 
+            // ====================================================================
+            // TAMBAHAN LOGIKA FLEKSIBEL (AKHIR PEKAN & TANGGAL MERAH)
+            // ====================================================================
+
+            // 1. Cek Akhir Pekan (Sabtu/Minggu)
+            if (Carbon::today()->isWeekend()) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Sistem menolak presensi: Hari ini adalah libur akhir pekan.',
+                    ]);
+                }
+                return back()->with('error', 'Sistem menolak presensi: Hari ini adalah libur akhir pekan.');
+            }
+
+            // 2. Cek Hari Libur Nasional / Tanggal Merah
+            $cekLibur = \App\Models\HariLibur::where('tanggal', $hariIni)->first();
+
+            if ($cekLibur) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Sistem menolak presensi: Hari ini libur (' . $cekLibur->keterangan . ').',
+                    ]);
+                }
+                return back()->with('error', 'Sistem menolak presensi: Hari ini libur (' . $cekLibur->keterangan . ').');
+            }
+            // ====================================================================
+
             // Cek apakah siswa sudah absen hari ini
             $sudahAbsen = Presensi::where('siswa_id', $siswa->id)
                 ->whereDate('created_at', $hariIni)
