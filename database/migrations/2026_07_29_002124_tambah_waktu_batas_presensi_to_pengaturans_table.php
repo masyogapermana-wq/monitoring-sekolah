@@ -6,13 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::table('pengaturans', function (Blueprint $table) {
-            $table->time('mulai_hadir')->default('06:00:00')->nullable();
-            $table->time('batas_hadir')->default('07:30:00')->nullable();
-            $table->time('batas_terlambat')->default('08:00:00')->nullable();
-            $table->time('batas_alpa')->default('15:00:00')->nullable();
+        Schema::create('pengaturans', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
         });
     }
 

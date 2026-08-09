@@ -28,28 +28,46 @@ class AuthController extends Controller
             'password' => $request->password,
         ];
 
-        // Auth::attempt mengecek database. Parameter kedua untuk mengecek checkbox "Ingat Saya"
+        // Auth::attempt mengecek database
         if (Auth::attempt($infologin, $request->has('remember'))) {
 
-            // PENTING: Mencegah serangan pembajakan sesi (Session Fixation)
+            // PENTING: Mencegah serangan pembajakan sesi
             $request->session()->regenerate();
 
-            // Kalau sukses, cek role-nya
+            // Mengambil data user yang sedang login
             $user = Auth::user();
 
+            // LOGIKA PENGARAHAN HALAMAN MUTLAK
+            // Pastikan tulisan URL di dalam redirect('/...') sesuai dengan Route::get lu di web.php
             if ($user->role == 'admin') {
-                return redirect()->intended('admin/dashboard');
-            } elseif ($user->role == 'piket') {
-                return redirect()->intended('piket/dashboard');
-            } elseif ($user->role == 'bk') {
-                return redirect()->intended('bk/dashboard');
+                return redirect('/admin/dashboard');
+            } elseif ($user->role == 'guru_bk' || $user->role == 'bk') {
+                return redirect('/bk/dashboard');
+            } elseif ($user->role == 'piket' || $user->role == 'guru_piket') {
+                return redirect('/piket/dashboard');
             }
+
+            // FITUR BANTUAN DETEKSI ROLE (Jika role salah/tidak cocok)
+            // Sistem akan memaksa logout dan memberitahu lu apa nama role aslinya
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => 'Role akun tidak cocok dengan kodingan. Role asli di database adalah: ' . $user->role
+            ]);
         }
 
-        // Kalau gagal, kembalikan ke halaman form login bawa pesan error
+        // ====================================================================
+        // JEBAKAN DEBUGGING
+        // Jika layar putih dan tulisan ini muncul, FIX 100% PASSWORD SALAH / BELUM DI-HASH
+        // ====================================================================
+        dd('LOGIN GAGAL! Layar putih ini membuktikan kalau Email atau Password Guru BK salah, atau password di database belum di-hash secara benar.');
+
+        // Jika email/password salah
         return back()->withErrors([
-            'email' => 'Email atau Kata Sandi yang Anda masukkan salah.',
-        ])->onlyInput('email'); // Mempertahankan input email biar gak ngetik ulang
+            'email' => 'Email atau password salah.',
+        ])->onlyInput('email');
     }
 
     // 3. Logout
